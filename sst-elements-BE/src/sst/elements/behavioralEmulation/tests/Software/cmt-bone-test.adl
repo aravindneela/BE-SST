@@ -1,0 +1,233 @@
+obtain(app.elementSize)
+obtain(app.elementsPerProcess)
+obtain(app.transferSizeX)
+obtain(app.transferSizeY)
+obtain(app.transferSizeZ)
+
+obtain(mpi.commRank)
+obtain(mpi.commSize)
+
+# Obtain my coordinates in the 3D Cartesian grid.
+# Refer: mpi_cart_coords()
+
+obtain(mpi.cartesianX)
+obtain(mpi.cartesianY)
+obtain(mpi.cartesianZ)
+
+obtain(mpi.cartesianXplus)
+obtain(mpi.cartesianHasXplus)
+
+obtain(mpi.cartesianXminus)
+obtain(mpi.cartesianHasXminus)
+
+obtain(mpi.cartesianYplus)
+obtain(mpi.cartesianHasYplus)
+
+obtain(mpi.cartesianYminus)
+obtain(mpi.cartesianHasYminus)
+
+obtain(mpi.cartesianZplus)
+obtain(mpi.cartesianHasZplus)
+
+obtain(mpi.cartesianZminus)
+obtain(mpi.cartesianHasZminus)
+
+# Print to console if the flag to do so is turned on.
+print("Rank, size ::", mpi.commRank, mpi.commSize)
+
+FOR ( rk, [0, 1, 2] ) {
+
+  call(cpu, computeA, app.elementSize, app.elementsPerProcess)
+
+  # Perform transfers to neighbors in each coordinate dimension.
+
+  # ------------------------------ X Direction --------------------------------
+
+  IF (0 == (mpi.cartesianX % 2)) {
+
+    # If my index on this axis is even:
+    #  - SEND  faces to    ABOVE  neighbor  (23)
+    #  - RECV  faces from  ABOVE  neighbor  (47)
+    #  - SEND  faces to    BELOW  neighbor  (61)
+    #  - RECV  faces from  BELOW  neighbor  (73)
+
+    IF (mpi.cartesianHasXplus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      comm(send, app.transferSizeX, mpi.cartesianXplus, 23)
+
+      call(cpu, wait, app.transferSizeX,  mpi.cartesianXplus, 47)
+
+    }
+
+    IF (mpi.cartesianHasXminus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      comm(send, app.transferSizeX, mpi.cartesianXminus, 61)
+
+      call(cpu, wait, app.transferSizeX,  mpi.cartesianXminus, 73)
+
+    }
+
+  }
+
+  IF (0 != (mpi.cartesianX % 2)) {
+
+    # If my index on this axis is odd:
+    #  - RECV  faces from  BELOW  neighbor  (23)
+    #  - SEND  faces from  BELOW  neighbor  (47)
+    #  - RECV  faces to    ABOVE  neighbor  (61)
+    #  - SEND  faces from  ABOVE  neighbor  (73)
+
+    IF (mpi.cartesianHasXminus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      call(cpu, wait, app.transferSizeX,  mpi.cartesianXminus, 23)
+
+      comm(send, app.transferSizeX, mpi.cartesianXminus, 47)
+
+    }
+
+    IF (mpi.cartesianHasXplus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      call(cpu, wait, app.transferSizeX,  mpi.cartesianXplus, 61)
+
+      comm(send, app.transferSizeX, mpi.cartesianXplus, 73)
+
+    }
+
+  }
+
+
+  # ------------------------------ Y Direction --------------------------------
+
+  IF (0 == (mpi.cartesianY % 2)) {
+
+    # If my index on this axis is even:
+    #  - SEND  faces to    ABOVE  neighbor  (23)
+    #  - RECV  faces from  ABOVE  neighbor  (47)
+    #  - SEND  faces to    BELOW  neighbor  (61)
+    #  - RECV  faces from  BELOW  neighbor  (73)
+
+    IF (mpi.cartesianHasYplus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      comm(send, app.transferSizeY, mpi.cartesianYplus, 23)
+
+      call(cpu, wait, app.transferSizeY,  mpi.cartesianYplus, 47)
+
+    }
+
+    IF (mpi.cartesianHasYminus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      comm(send, app.transferSizeY, mpi.cartesianYminus, 61)
+
+      call(cpu, wait, app.transferSizeY,  mpi.cartesianYminus, 73)
+
+    }
+
+  }
+
+  IF (0 != (mpi.cartesianY % 2)) {
+
+    # If my index on this axis is odd:
+    #  - RECV  faces from  BELOW  neighbor  (23)
+    #  - SEND  faces from  BELOW  neighbor  (47)
+    #  - RECV  faces to    ABOVE  neighbor  (61)
+    #  - SEND  faces from  ABOVE  neighbor  (73)
+
+    IF (mpi.cartesianHasYminus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      call(cpu, wait, app.transferSizeY,  mpi.cartesianYminus, 23)
+
+      comm(send, app.transferSizeY, mpi.cartesianYminus, 47)
+
+    }
+
+    IF (mpi.cartesianHasYplus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      call(cpu, wait, app.transferSizeY,  mpi.cartesianYplus, 61)
+
+      comm(send, app.transferSizeY, mpi.cartesianYplus, 73)
+
+    }
+
+  }
+
+  # ------------------------------ Z Direction --------------------------------
+
+  IF (0 == (mpi.cartesianZ % 2)) {
+
+    # If my index on this axis is even:
+    #  - SEND  faces to    ABOVE  neighbor  (23)
+    #  - RECV  faces from  ABOVE  neighbor  (47)
+    #  - SEND  faces to    BELOW  neighbor  (61)
+    #  - RECV  faces from  BELOW  neighbor  (73)
+
+    IF (mpi.cartesianHasZplus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      comm(send, app.transferSizeZ, mpi.cartesianZplus, 23)
+
+      call(cpu, wait, app.transferSizeZ,  mpi.cartesianZplus, 47)
+
+    }
+
+    IF (mpi.cartesianHasZminus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      comm(send, app.transferSizeZ, mpi.cartesianZminus, 61)
+
+      call(cpu, wait, app.transferSizeZ,  mpi.cartesianZminus, 73)
+
+    }
+
+  }
+
+  IF (0 != (mpi.cartesianZ % 2)) {
+
+    # If my index on this axis is odd:
+    #  - RECV  faces from  BELOW  neighbor  (23)
+    #  - SEND  faces from  BELOW  neighbor  (47)
+    #  - RECV  faces to    ABOVE  neighbor  (61)
+    #  - SEND  faces from  ABOVE  neighbor  (73)
+
+    IF (mpi.cartesianHasZminus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      call(cpu, wait, app.transferSizeZ,  mpi.cartesianZminus, 23)
+
+      comm(send, app.transferSizeZ, mpi.cartesianZminus, 47)
+
+    }
+
+    IF (mpi.cartesianHasZplus == 1) {
+
+      call(cpu, prepareFaces, app.elementSize, app.elementsPerProcess)
+
+      call(cpu, wait, app.transferSizeZ,  mpi.cartesianZplus, 61)
+
+      comm(send, app.transferSizeZ, mpi.cartesianZplus, 73)
+
+    }
+
+  }
+
+  call(cpu, computeB, app.elementSize, app.elementsPerProcess)
+
+}

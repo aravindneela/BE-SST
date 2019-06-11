@@ -1,0 +1,1563 @@
+obtain(app.elementsize)
+obtain(app.procsperplane)
+obtain(mpi.commRank)
+obtain(mpi.commsize)
+obtain(mpi.rowMin)
+obtain(mpi.rowMax)
+obtain(mpi.colMin)
+obtain(mpi.colMax)
+obtain(mpi.planeMin)
+obtain(mpi.planeMax)
+obtain(mpi.totalrecvs1)
+obtain(mpi.totalrecvs2)
+obtain(mpi.totalrecvs3)
+obtain(mpi.cartesianZminus)
+obtain(mpi.cartesianZplus)
+obtain(mpi.cartesianYminus)
+obtain(mpi.cartesianYplus)
+obtain(mpi.cartesianXminus)
+obtain(mpi.cartesianXplus)
+
+call(cpu,ComputeA,app.elementsize)
+
+
+
+
+
+   IF (mpi.planeMin == 1) {
+		indep()
+       comm(send, (app.elementsize + 1) * (app.elementsize + 1),mpi.cartesianZminus, 0)
+		begin()
+   }
+
+# ELSE NO OP
+   IF (mpi.planeMax == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1),mpi.cartesianZplus , 0)
+		begin()
+   }   
+# ELSE NO OP
+
+
+   IF (mpi.rowMin == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1),mpi.cartesianYminus , 0)
+		begin()
+   }
+# ELSE NO OP
+   IF (mpi.rowMax == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1),mpi.cartesianZplus , 0)
+		begin()
+   }
+# ELSE NO OP
+
+
+   IF (mpi.colMin == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1),mpi.cartesianXminus , 0)
+		begin()
+   }
+# ELSE NO OP
+   IF (mpi.colMax == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1),mpi.cartesianXplus , 0)
+		begin()
+   }
+# ELSE NO OP
+
+#-----------------------------------------SENDING ACROSS DOMAIN FACE ENDS-----------------------------------
+
+#-----------------------------------------SENDING ACROSS DOMAIN EDGE STARTS-------------------------------------
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.colMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) , mpi.cartesianYminus - 1 , 0)
+		begin()
+	}
+	#ELSE NO OP
+  }
+# ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianZminus - app.procsperplane , 0 )
+		begin()
+	}
+	# ELSE NO OP
+  }
+# ELSE NO OP
+   
+  IF (mpi.colMin == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianZminus - 1 , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+# ELSE NO OP
+
+    IF (mpi.rowMax == 1) {
+	IF (mpi.colMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianYplus + 1 , 0 )
+		begin()
+	}
+	# ELSE NO OP
+   }
+# ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	IF (mpi.planeMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianZplus + app.procsperplane , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+# ELSE NO OP
+
+
+  IF (mpi.colMax == 1) {
+	IF (mpi.planeMax == 1) {
+		indep()
+		comm(send, (app.elementsize + 1),mpi.cartesianYplus + app.procsperplane ,0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+    IF (mpi.rowMax == 1) {
+	IF (mpi.colMin == 1) {	
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianYplus - 1 , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.planeMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianZplus - app.procsperplane ,0  )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+  IF (mpi.colMin == 1) {
+	IF (mpi.planeMax == 1) {
+	indep()
+	comm(send,(app.elementsize + 1),mpi.cartesianZplus - 1 , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP 
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.colMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianYminus + 1 , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+    IF (mpi.rowMax == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianZminus + app.procsperplane , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.colMax == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1),mpi.cartesianZminus + 1 , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+#-------------------------------------------SENDING ACROSS DOMAIN EDGE ENDS -------------------------------------------
+
+#----------------------------------------SENDING ACROSS DOMAIN CORNER STARTS-------------------------------------
+
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,1,mpi.cartesianZminus - app.procsperplane - 1 ,0 )
+			begin()
+		}
+		#ELSE NO OP
+   	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMax == 1) {
+			indep()
+			comm(send, 1 ,mpi.cartesianZplus - app.procsperplane - 1 , 0 )
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+   
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMin == 1) {	
+			indep()
+			comm(send, 1 ,mpi.cartesianZminus - app.procsperplane + 1 ,0 )
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP   
+
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMax == 1) {	
+			indep()
+			comm(send,1 ,mpi.cartesianZplus - app.procsperplane + 1 ,  0 )
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP 
+
+ IF (mpi.rowMax == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,1, mpi.cartesianZminus + app.procsperplane - 1 , 0 )
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP 
+
+  IF (mpi.rowMax == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMax == 1) {
+			indep()
+			comm(send,1 , mpi.cartesianZplus + app.procsperplane - 1 , 0 )
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP 
+
+  IF (mpi.rowMax == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,1 , mpi.cartesianZminus + app.procsperplane + 1 , 0  )
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMax == 1) {
+			indep()
+			comm(send,1 ,mpi.cartesianZplus + app.procsperplane + 1 ,  0)
+			begin()
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+#----------------------------------------SENDING ACROSS DOMAIN CORNER ENDS----------------------------------------------------     
+
+
+
+   IF (mpi.planeMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.planeMax == 1) {
+	
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.rowMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.colMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.colMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMin == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMax == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMin == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP		
+
+   IF (mpi.colMax == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP	
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+
+
+
+   call(cpu,barrier,app.elementsize)
+
+#------------------------------------------INITIAL BOUNDARY COMMUNICATION COMPLETE---------------------------------------------------   
+
+
+#--------------------------------------------ENTERING MAIN LOOP-----------------------------------------------------------------------------------
+
+FOR (rk,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+{
+
+
+   call(cpu,ComputeB,app.elementsize)
+   call(cpu,ComputeC,app.elementsize)
+
+
+
+   
+   call(cpu,ComputeD,app.elementsize)
+   
+
+   IF (mpi.planeMin == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1) * 3 , mpi.cartesianZminus , 0)
+		begin()
+	   }
+
+# ELSE NO OP
+   IF (mpi.planeMax == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1) * 3 ,mpi.cartesianZplus ,  0)
+		begin()
+	   }   
+# ELSE NO OP
+
+
+   IF (mpi.rowMin == 1) {
+		indep()
+       comm(send, (app.elementsize + 1) * (app.elementsize + 1) * 3 , mpi.cartesianYminus , 0)
+		begin()
+	   }
+# ELSE NO OP
+   IF (mpi.rowMax == 1) {
+		indep()
+       comm(send, (app.elementsize + 1) * (app.elementsize + 1) * 3,mpi.cartesianZplus , 0 )
+		begin()
+	   }
+# ELSE NO OP
+
+
+   IF (mpi.colMin == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1) * 3,mpi.cartesianXminus , 0 )
+		begin()
+ }
+# ELSE NO OP
+   IF (mpi.colMax == 1) {
+		indep()
+       comm(send,(app.elementsize + 1) * (app.elementsize + 1) * 3,mpi.cartesianXplus , 0 )
+		begin()
+	   }
+# ELSE NO OP
+
+#-----------------------------------------SENDING ACROSS DOMAIN FACE ENDS-----------------------------------
+
+#-----------------------------------------SENDING ACROSS DOMAIN EDGE STARTS-------------------------------------
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.colMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianYminus - 1 , 0 )
+		begin()
+		}
+	#ELSE NO OP
+  }
+
+# ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianZminus - app.procsperplane ,0 )
+		begin()
+		}
+	# ELSE NO OP
+  }
+
+# ELSE NO OP
+   
+  IF (mpi.colMin == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianZminus - 1 , 0 )
+		begin()
+		}
+	#ELSE NO OP
+  }
+# ELSE NO OP
+
+    IF (mpi.rowMax == 1) {
+	IF (mpi.colMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianYplus + 1 , 0 )
+		begin()
+	}
+	# ELSE NO OP
+   }
+# ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	IF (mpi.planeMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianZplus + app.procsperplane , 0)
+		begin()
+		}
+	#ELSE NO OP
+  }
+# ELSE NO OP
+
+
+  IF (mpi.colMax == 1) {
+	IF (mpi.planeMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianYplus + app.procsperplane ,0 )
+		begin()
+		}
+	#ELSE NO OP
+	
+  }
+#ELSE NO OP  
+    IF (mpi.rowMax == 1) {
+	IF (mpi.colMin == 1) {	
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianYplus - 1 , 0 )
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.planeMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianZplus - app.procsperplane ,0)
+		begin()
+		}
+	#ELSE NO OP  
+}
+#ELSE NO OP
+  IF (mpi.colMin == 1) {
+	IF (mpi.planeMax == 1) {
+	indep()
+	comm(send,(app.elementsize + 1) * 3,mpi.cartesianZplus - 1 , 0)
+	begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	IF (mpi.colMax == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianYminus + 1 , 0)
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+    IF (mpi.rowMax == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianZminus + app.procsperplane , 0)
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+  IF (mpi.colMax == 1) {
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,(app.elementsize + 1) * 3,mpi.cartesianZminus + 1 , 0)
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+#-------------------------------------------SENDING ACROSS DOMAIN EDGE ENDS -------------------------------------------
+
+#----------------------------------------SENDING ACROSS DOMAIN CORNER STARTS-------------------------------------
+
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,3,mpi.cartesianZminus - app.procsperplane - 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+   	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMax == 1) {
+			indep()
+			comm(send,3,mpi.cartesianZplus - app.procsperplane - 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+   
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMin == 1) {	
+			indep()
+			comm(send,3,mpi.cartesianZminus - app.procsperplane + 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+   
+ IF (mpi.rowMin == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMax == 1) {	
+			indep()
+			comm(send,3,mpi.cartesianZplus - app.procsperplane + 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP 
+
+
+ IF (mpi.rowMax == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,3,mpi.cartesianZminus + app.procsperplane - 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+ 
+  IF (mpi.rowMax == 1) {
+	IF (mpi.colMin == 1) {
+		IF (mpi.planeMax == 1) {
+			indep()
+			comm(send,3,mpi.cartesianZplus + app.procsperplane - 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP 
+
+  IF (mpi.rowMax == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,3,mpi.cartesianZminus + app.procsperplane + 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+
+   IF (mpi.rowMax == 1) {
+	IF (mpi.colMax == 1) {
+		IF (mpi.planeMax == 1) {
+			indep()
+			comm(send,3,mpi.cartesianZplus + app.procsperplane + 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+#----------------------------------------SENDING ACROSS DOMAIN CORNER ENDS----------------------------------------------------     
+ 
+
+
+IF (mpi.planeMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.planeMax == 1) {
+	
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.rowMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.colMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.colMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMin == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP  
+}
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP  
+}
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMax == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP  
+}
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMin == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP		
+
+   IF (mpi.colMax == 1) {
+	
+	IF (mpi.planeMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wai)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMin == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+
+
+
+
+
+  call(cpu,ComputeE,app.elementsize)
+#------------------------------------COMMSEND APPBEO IMPLEMENTATION-----------------------------
+
+
+
+
+
+#------------------------------------SENDING ACROSS DOMAIN FACE STARTS ----------------------------------------------------
+
+
+  
+   IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * (app.elementsize + 1) * 6 ) ,mpi.cartesianZminus , 0)
+		begin()
+ }
+#ELSE NO OP
+  
+
+
+   IF (mpi.rowMin == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * (app.elementsize + 1) * 6 ),mpi.cartesianYminus , 0)
+		begin()
+		}
+#ELSE NO OP
+
+
+
+
+   IF (mpi.colMin == 1) {
+		indep()
+	comm(send,( (app.elementsize + 1) * (app.elementsize + 1) * 6 ),mpi.cartesianXminus , 0)
+		begin()
+	}
+#ELSE NO OP
+
+
+
+
+#-----------------------------------------SENDING ACROSS DOMAIN FACE ENDS-----------------------------------
+
+#-----------------------------------------SENDING ACROSS DOMAIN EDGE STARTS-------------------------------------
+
+  IF (mpi.rowMin == 1) {
+		
+	IF (mpi.colMin == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * 6 ),mpi.cartesianYminus - 1 , 0 )
+		begin()
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * 6 ),mpi.cartesianZminus - app.procsperplane , 0)
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP   
+
+  IF (mpi.colMin == 1) {
+
+	IF (mpi.planeMin == 1) {	
+		indep()
+		comm(send,( (app.elementsize + 1) * 6 ),mpi.cartesianZminus - 1 , 0 )
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.rowMin == 1) {
+
+	IF (mpi.colMax == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * 6 ),mpi.cartesianYminus + 1 , 0 )
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+
+    IF (mpi.rowMax == 1) {
+
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * 6 ),mpi.cartesianZminus + app.procsperplane ,0 )
+		begin()
+		}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+  IF (mpi.colMax == 1) {
+
+	IF (mpi.planeMin == 1) {
+		indep()
+		comm(send,( (app.elementsize + 1) * 6 ),mpi.cartesianZminus + 1 , 0 )
+		begin()
+		}
+	#ELSE NO OP  
+}
+#ELSE NO OP
+#-------------------------------------------SENDING ACROSS DOMAIN EDGE ENDS -------------------------------------------
+
+#----------------------------------------SENDING ACROSS DOMAIN CORNER STARTS-------------------------------------
+
+ IF (mpi.rowMin == 1) {
+
+	IF (mpi.colMin == 1) {
+		
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,6,mpi.cartesianZminus - app.procsperplane - 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP		
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP   
+   
+ IF (mpi.rowMin == 1) {
+
+	IF (mpi.colMax == 1) {
+		
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,6,mpi.cartesianZminus - app.procsperplane + 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP   
+
+ IF (mpi.rowMax == 1) {
+
+	IF (mpi.colMin == 1) {
+		
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,6,mpi.cartesianZminus + app.procsperplane - 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP 
+   
+  IF (mpi.rowMax == 1) {
+
+	IF (mpi.colMax == 1) {
+		
+		IF (mpi.planeMin == 1) {
+			indep()
+			comm(send,6,mpi.cartesianZminus + app.procsperplane + 1 , 0 )
+			begin()
+			}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP   
+#----------------------------------------SENDING ACROSS DOMAIN CORNER ENDS----------------------------------------------------     
+
+
+
+
+
+   IF (mpi.planeMax == 1) {
+	
+	call(cpu,wait)
+   }
+#ELSE NO OP
+
+
+   IF (mpi.rowMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+
+
+   IF (mpi.colMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.colMax == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+   IF (mpi.rowMin == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+  
+	#ELSE NO OP
+}
+#ELSE NO OP
+
+   IF (mpi.colMin == 1) {
+	
+	IF (mpi.planeMax == 1) {
+		
+		call(cpu,wait)
+	}
+	#ELSE NO OP
+  }
+#ELSE NO OP
+
+
+	
+
+
+
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+
+
+
+
+
+  IF (mpi.rowMin == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMin == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+
+  IF (mpi.rowMax == 1) {
+	
+	IF (mpi.colMax == 1) {
+
+		IF (mpi.planeMax == 1) {
+
+			call(cpu,wait)
+		}
+		#ELSE NO OP
+	}
+	#ELSE NO OP
+ }
+#ELSE NO OP
+
+
+
+
+
+   call(cpu,ComputeF,app.elementsize)
+
+
+
+
+   call(cpu,ComputeG,app.elementsize)
+
+
+#------------------------------------COMMSEND APPBEO IMPLEMENTATION-----------------------------
+
+
+#------------------------------------SENDING ACROSS DOMAIN FACE STARTS ----------------------------------------------------
+
+
+  
+   IF (mpi.planeMin == 1) {
+		indep()
+       comm(send,( (app.elementsize ) * ( app.elementsize) * 3 ),mpi.cartesianZminus , 0 )
+		begin()
+   }
+#ELSE NO OP
+   IF (mpi.planeMax == 1) {
+		indep()
+       comm(send,( (app.elementsize ) * ( app.elementsize) * 3 ),mpi.cartesianZplus , 0)
+		begin()
+   }   
+#ELSE NO OP
+
+
+
+   IF (mpi.rowMin == 1) {
+       indep()
+       comm(send,( (app.elementsize ) * ( app.elementsize) * 3 ),mpi.cartesianYminus , 0 )
+		begin()
+  }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+		indep()
+       comm(send,( (app.elementsize ) * ( app.elementsize) * 3 ),mpi.cartesianZplus , 0 )
+		begin()
+   }
+#ELSE NO OP
+ 
+
+
+   IF (mpi.colMin == 1) {
+		indep()
+       comm(send,( (app.elementsize ) * ( app.elementsize) * 3 ),mpi.cartesianXminus ,0 )
+		begin()
+   }
+#ELSE NO OP
+   IF (mpi.colMax == 1) {
+		indep()
+       comm(send,( (app.elementsize ) * ( app.elementsize) * 3 ),mpi.cartesianXplus , 0 )
+		begin()
+  }
+#ELSE NO OP
+
+
+#-----------------------------------------SENDING ACROSS DOMAIN FACE ENDS-----------------------------------
+
+
+IF (mpi.planeMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.planeMax == 1) {
+	
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.rowMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.rowMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.colMin == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+   IF (mpi.colMax == 1) {
+
+	call(cpu,wait)
+   }
+#ELSE NO OP
+
+   call(cpu,ComputeH,app.elementsize)
+   call(cpu,ComputeI,app.elementsize)
+}
+

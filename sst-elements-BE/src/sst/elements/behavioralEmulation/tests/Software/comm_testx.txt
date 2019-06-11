@@ -1,0 +1,17 @@
+(000) obtain :: r`00 app.transferSize
+(001) obtain :: r`01 app.elementSize
+(002) obtain :: r`02 mpi.commRank
+(003) obtain :: r`03 mpi.commSize
+(004) jumpeq :: r`02 0 (006)
+(005)   comm :: send r`00 0 23
+(006) target :: (004)
+(007) jumpnq :: r`02 0 (016)
+(008) assign :: r`04 0
+(009) target :: (014)
+(010) assign :: r`05 [1,2,3,4,5,6,7]
+(011) access :: r`06 r`05 r`04
+(012)   call :: cpu wait r`00 r`06 23
+(013)    inc :: r`04
+(014) jumplt :: r`04 7 (009)
+(015)   call :: cpu computeA r`01
+(016) target :: (007)

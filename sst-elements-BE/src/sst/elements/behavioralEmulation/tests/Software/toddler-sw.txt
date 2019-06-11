@@ -1,0 +1,24 @@
+(000) obtain :: r`00 mpi.commRank
+(001) obtain :: r`01 mpi.commSize
+(002) assign :: r`02 0
+(003) target :: (023)
+(004) assign :: r`04 [0,4,1]
+(005) access :: r`03 r`04 r`02
+(006)  indep :: 
+(007)    sub :: r`04 r`00 1
+(008)   comm :: send 16384 r`04 0
+(009)  begin :: 
+(010)    add :: r`04 r`00 1
+(011)   call :: cpu wait 16384 r`04 0
+(012)    mul :: r`04 524288 r`03
+(013)   call :: memory allocate r`04
+(014)    mul :: r`04 128 r`03
+(015)   call :: cpu fft 512 r`04
+(016)    mul :: r`04 524288 r`03
+(017)   call :: memory deallocate r`04
+(018) obtain :: r`04 sim.time
+(019)  print :: "Simulation/ttime/tat/tthe/tend/tof/titeration" r`03
+(020)  print :: "-" r`04
+(021)  print :: "seconds\n"
+(022)    inc :: r`02
+(023) jumplt :: r`02 3 (003)

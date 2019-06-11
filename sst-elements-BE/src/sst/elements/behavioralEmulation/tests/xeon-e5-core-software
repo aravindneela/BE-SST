@@ -1,0 +1,15 @@
+(000) obtain :: r`00 mpi.commRank
+(001)   call :: cpu fft 42 999
+(002) jumpnq :: r`00 0 (009)
+(003)    add :: r`01 r`00 1
+(004)   comm :: send 256 r`01 0
+(005)  indep :: 
+(006)    add :: r`01 r`00 1
+(007)   comm :: send 1000 r`01 0
+(008)  begin :: 
+(009) target :: (002)
+(010) jumpnq :: r`00 1 (013)
+(011)   call :: cpu wait
+(012)   call :: cpu wait
+(013) target :: (010)
+(014)   call :: cpu fft 666 128

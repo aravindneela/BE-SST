@@ -1,0 +1,9 @@
+obtain(app.elementSize)
+obtain(mpi.commRank)
+obtain(mpi.commSize)
+
+call(cpu, computeA, app.elementSize)
+
+call(cpu, computeB, app.elementSize)
+
+call(cpu, computeC, app.elementSize)

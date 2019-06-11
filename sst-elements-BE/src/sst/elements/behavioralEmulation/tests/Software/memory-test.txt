@@ -1,0 +1,13 @@
+(000) obtain :: r`00 app.elementSize
+(001) obtain :: r`01 mpi.commRank
+(002) obtain :: r`02 mpi.commSize
+(003) assign :: r`03 0
+(004) target :: (012)
+(005) assign :: r`04 [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50]
+(006) access :: r`05 r`04 r`03
+(007)   call :: cpu computeA r`00
+(008)   call :: cpu computeB r`00
+(009)   call :: cpu computeC r`00
+(010)   call :: cpu computeA r`00
+(011)    inc :: r`03
+(012) jumplt :: r`03 51 (004)

@@ -1,0 +1,46 @@
+obtain(app.elementSize)
+obtain(app.elementsPerProcess)
+fobtain(app.alpha)
+obtain(mpi.commRank)
+obtain(mpi.commSize)
+
+#--------------------------------------------ENTERING MAIN CMT-nek LOOP-----------------------------------------------------------------------------------
+
+	FOR (stage,[1,2,3])
+	{
+		#usr_particles_solver()
+		IF (stage == 1)
+		{
+			call(cpu,update_particles_location,app.elementSize,app.elementsPerProcess,app.alpha)
+
+			#move_particles_inproc routine starts			
+			call(cpu,update_particles_position,app.elementSize,app.elementsPerProcess,app.alpha)
+                        call(cpu,Compute1,app.elementSize,app.elementsPerProcess,app.alpha)
+			call(cpu,crystal_tuple_sort,app.elementSize,app.elementsPerProcess,app.alpha)
+
+
+
+		}
+
+		call(cpu,interp_props_part_location,app.elementSize,app.elementsPerProcess,app.alpha)
+		#call(cpu,usr_particles_forces,app.elementSize,app.elementsPerProcess,app.alpha)
+		
+		# update_vel_and_pos_rk3 routine starts
+
+		IF (stage == 1)
+		{
+			call(cpu,Compute2,app.elementSize,app.elementsPerProcess,app.alpha)
+		}
+		
+		call(cpu,Compute3,app.elementSize,app.elementsPerProcess,app.alpha)
+		
+		IF (stage == 3)
+		{
+			call(cpu,Compute4,app.elementSize,app.elementsPerProcess,app.alpha)
+		}
+		
+			
+
+	}
+
+

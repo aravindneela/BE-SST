@@ -1,0 +1,6 @@
+(000) obtain :: r`00 app.elementSize
+(001) obtain :: r`01 mpi.commRank
+(002) obtain :: r`02 mpi.commSize
+(003)   call :: cpu computeA r`00
+(004)   call :: cpu computeB r`00
+(005)   call :: cpu computeC r`00

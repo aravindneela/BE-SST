@@ -1,0 +1,6 @@
+(000) obtain :: r`00 app.transferSize
+(001) obtain :: r`01 mpi.commRank
+(002) obtain :: r`02 mpi.commSize
+(003) jumpeq :: r`01 1 (005)
+(004)   comm :: send r`00 1 23
+(005) target :: (003)

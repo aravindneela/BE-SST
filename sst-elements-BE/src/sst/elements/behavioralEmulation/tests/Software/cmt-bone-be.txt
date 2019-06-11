@@ -1,0 +1,124 @@
+(000) obtain :: r`00 app.elementSize
+(001) obtain :: r`01 app.elementsPerProcess
+(002) obtain :: r`02 app.transferSizeX
+(003) obtain :: r`03 app.transferSizeY
+(004) obtain :: r`04 app.transferSizeZ
+(005) obtain :: r`05 app.timesteps
+(006) obtain :: r`06 app.phyParam
+(007) obtain :: r`07 mpi.commRank
+(008) obtain :: r`08 mpi.commSize
+(009) obtain :: r`09 mpi.cartesianX
+(010) obtain :: r`10 mpi.cartesianY
+(011) obtain :: r`11 mpi.cartesianZ
+(012) obtain :: r`12 mpi.cartesianXplus
+(013) obtain :: r`13 mpi.cartesianHasXplus
+(014) obtain :: r`14 mpi.cartesianXminus
+(015) obtain :: r`15 mpi.cartesianHasXminus
+(016) obtain :: r`16 mpi.cartesianYplus
+(017) obtain :: r`17 mpi.cartesianHasYplus
+(018) obtain :: r`18 mpi.cartesianYminus
+(019) obtain :: r`19 mpi.cartesianHasYminus
+(020) obtain :: r`20 mpi.cartesianZplus
+(021) obtain :: r`21 mpi.cartesianHasZplus
+(022) obtain :: r`22 mpi.cartesianZminus
+(023) obtain :: r`23 mpi.cartesianHasZminus
+(024)   call :: cpu computeConv r`00 r`01
+(025)   call :: cpu computedr r`00 r`01
+(026)   call :: cpu computeds r`00 r`01
+(027)   call :: cpu computedt r`00 r`01
+(028)   call :: cpu computeSum r`00 r`01
+(029)   call :: cpu comminit r`00 r`01
+(030)   call :: cpu comminitaxis r`00 r`01
+(031)    mod :: r`24 r`09 2
+(032) jumpnq :: 0 r`24 (045)
+(033) jumpnq :: r`13 1 (038)
+(034)   call :: cpu prepareFaces r`00 r`01
+(035)   comm :: send r`02 r`12 23
+(036)   call :: cpu wait r`02 r`12 47
+(037)   call :: cpu cleanFaces r`00 r`01
+(038) target :: (033)
+(039) jumpnq :: r`15 1 (044)
+(040)   call :: cpu prepareFaces r`00 r`01
+(041)   comm :: send r`02 r`14 61
+(042)   call :: cpu wait r`02 r`14 73
+(043)   call :: cpu cleanFaces r`00 r`01
+(044) target :: (039)
+(045) target :: (032)
+(046)    mod :: r`24 r`09 2
+(047) jumpeq :: 0 r`24 (060)
+(048) jumpnq :: r`15 1 (053)
+(049)   call :: cpu prepareFaces r`00 r`01
+(050)   call :: cpu wait r`02 r`14 23
+(051)   comm :: send r`02 r`14 47
+(052)   call :: cpu cleanFaces r`00 r`01
+(053) target :: (048)
+(054) jumpnq :: r`13 1 (059)
+(055)   call :: cpu prepareFaces r`00 r`01
+(056)   call :: cpu wait r`02 r`12 61
+(057)   comm :: send r`02 r`12 73
+(058)   call :: cpu cleanFaces r`00 r`01
+(059) target :: (054)
+(060) target :: (047)
+(061)   call :: cpu comminitaxis r`00 r`01
+(062)    mod :: r`24 r`10 2
+(063) jumpnq :: 0 r`24 (076)
+(064) jumpnq :: r`17 1 (069)
+(065)   call :: cpu prepareFaces r`00 r`01
+(066)   comm :: send r`03 r`16 23
+(067)   call :: cpu wait r`03 r`16 47
+(068)   call :: cpu cleanFaces r`00 r`01
+(069) target :: (064)
+(070) jumpnq :: r`19 1 (075)
+(071)   call :: cpu prepareFaces r`00 r`01
+(072)   comm :: send r`03 r`18 61
+(073)   call :: cpu wait r`03 r`18 73
+(074)   call :: cpu cleanFaces r`00 r`01
+(075) target :: (070)
+(076) target :: (063)
+(077)    mod :: r`24 r`10 2
+(078) jumpeq :: 0 r`24 (091)
+(079) jumpnq :: r`19 1 (084)
+(080)   call :: cpu prepareFaces r`00 r`01
+(081)   call :: cpu wait r`03 r`18 23
+(082)   comm :: send r`03 r`18 47
+(083)   call :: cpu cleanFaces r`00 r`01
+(084) target :: (079)
+(085) jumpnq :: r`17 1 (090)
+(086)   call :: cpu prepareFaces r`00 r`01
+(087)   call :: cpu wait r`03 r`16 61
+(088)   comm :: send r`03 r`16 73
+(089)   call :: cpu cleanFaces r`00 r`01
+(090) target :: (085)
+(091) target :: (078)
+(092)   call :: cpu comminitaxis r`00 r`01
+(093)    mod :: r`24 r`11 2
+(094) jumpnq :: 0 r`24 (107)
+(095) jumpnq :: r`21 1 (100)
+(096)   call :: cpu prepareFaces r`00 r`01
+(097)   comm :: send r`04 r`20 23
+(098)   call :: cpu wait r`04 r`20 47
+(099)   call :: cpu cleanFaces r`00 r`01
+(100) target :: (095)
+(101) jumpnq :: r`23 1 (106)
+(102)   call :: cpu prepareFaces r`00 r`01
+(103)   comm :: send r`04 r`22 61
+(104)   call :: cpu wait r`04 r`22 73
+(105)   call :: cpu cleanFaces r`00 r`01
+(106) target :: (101)
+(107) target :: (094)
+(108)    mod :: r`24 r`11 2
+(109) jumpeq :: 0 r`24 (122)
+(110) jumpnq :: r`23 1 (115)
+(111)   call :: cpu prepareFaces r`00 r`01
+(112)   call :: cpu wait r`04 r`22 23
+(113)   comm :: send r`04 r`22 47
+(114)   call :: cpu cleanFaces r`00 r`01
+(115) target :: (110)
+(116) jumpnq :: r`21 1 (121)
+(117)   call :: cpu prepareFaces r`00 r`01
+(118)   call :: cpu wait r`04 r`20 61
+(119)   comm :: send r`04 r`20 73
+(120)   call :: cpu cleanFaces r`00 r`01
+(121) target :: (116)
+(122) target :: (109)
+(123)   call :: cpu computerk r`00 r`01

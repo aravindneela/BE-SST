@@ -1,0 +1,9 @@
+#This simple software describes a single communication operation to a single target (component 0, gid 1) with blocking send and non-blocking receive primitives(modelled in the operation configuration file)
+
+obtain(app.transferSize)
+obtain(mpi.commRank)
+obtain(mpi.commSize)
+
+IF (mpi.commRank != 0) {
+    comm(send, app.transferSize, 0, 23) 
+}

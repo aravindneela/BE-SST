@@ -1,0 +1,26 @@
+# Example: rank 0 sends two messages to rank 1.
+
+# Macro example below. Caution is advised when using macros, as short ones
+# may be parts of other words, but will still be substituted.
+
+DEFINE :: myrank << mpi.commRank >>
+
+obtain(myrank)
+
+call( cpu, fft, 42, 999 )
+
+IF ( myrank == 0 )
+{
+  comm(send, 256, myrank + 1, 0)  # Blocking send to 1.
+  indep()                         # The next instructions are independent.
+  comm(send, 1000, myrank + 1, 0) # Non-blocking send to 1.
+  begin()                         # Execute the independent instructions.
+}
+
+IF ( myrank == 1 )
+{
+  call(cpu, wait)                 # Blocking receive from anyone.
+  call(cpu, wait)                 # Blocking receive from anyone.
+}
+
+call( cpu, fft, 666, 128 )

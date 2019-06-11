@@ -1,0 +1,48 @@
+# Example: Everyone sends to the rank below them, and then each
+# does some computation and memory operations.
+
+
+# Fill a register with the values of these things so that we can
+# use them as parameters in the simulation.
+
+obtain(mpi.commRank)
+obtain(mpi.commSize)
+
+FOR (i, [0, 4, 1])
+{
+
+  # Print to console if the flag to do so is turned on.
+
+  #print("Rank, size, i ::", mpi.commRank, mpi.commSize, i)
+
+
+  # Non-blocking send to the rank below me. The simulator knows that
+  # a rank of (-1) means the maximum rank, so condition checks based
+  # on size are not necessary. Also, here we're sending 16k of data
+  # with a tag of 0.
+
+  indep()
+  comm(send, 16384, mpi.commRank - 1, 0)
+  begin()
+
+
+  # Blocking recieve from the rank above me. Again, the simulator knows
+  # that if the rank is out of bounds, it wraps around to the beginning,
+  # so sending to 'mpi.commSize' is actually rank zero.
+
+  call(cpu, wait, 16384, mpi.commRank + 1, 0)
+
+
+  # Perform some function calls, the meaning of which is defined in
+  # the hardware configuration file. Here, the parameters are dependent
+  # on the value of the iteration variable 'i'.
+
+  call(memory, allocate,   512 * 128 * 8 * i)
+  call(cpu,    fft,        512,  128 * i)
+  call(memory, deallocate, 512 * 128 * 8 * i)
+
+  obtain(sim.time)
+  print("Simulation time at the end of iteration", i)
+  print("-", sim.time)
+  print("seconds\n")
+}
