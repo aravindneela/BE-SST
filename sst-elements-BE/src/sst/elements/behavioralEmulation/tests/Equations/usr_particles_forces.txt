@@ -1,0 +1,1 @@
+("add(mul(add(exp(mul(rank, rank)), div(mul(alpha, alpha), 1.0)), 0.000185046578547), -0.000190211658337)")
