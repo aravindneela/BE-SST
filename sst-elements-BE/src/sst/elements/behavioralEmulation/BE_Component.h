@@ -24,8 +24,6 @@ public:
     beComponent(SST::ComponentId_t id, SST::Params& params);
 
     ~beComponent();
-    
-    Layout* getLayoutInfo() { return layout; }
 
     int getGid() { return self_gid; }
 
@@ -55,13 +53,11 @@ public:
 
     bool running(bool flg);
 
-    void run(double t_cap, time_t w_cap, int e_cap);
-
     void step(std::shared_ptr<Process> process);
 
     void tick(double eventTime, std::shared_ptr<simEvent> event, std::shared_ptr<Process> eventProcess);
 
-    void walk(std::shared_ptr<Process> process);
+    void run(std::shared_ptr<Process> process);
 
     void handleEvents(std::shared_ptr<simEvent> event, std::shared_ptr<Process> eventProcess);
 
@@ -93,7 +89,9 @@ private:
 
     int key, barrierCount;
 
-    std::queue<std::tuple<double, std::shared_ptr<timeoutEvent>, std::shared_ptr<Process>>> computeQ; 
+    std::queue<std::tuple<double, std::shared_ptr<timeoutEvent>, std::shared_ptr<Process>>> computeQ;
+
+    std::queue<std::tuple<std::shared_ptr<timeoutEvent>, std::shared_ptr<Process>>> computeWaitQ; 
    
     std::queue<std::tuple<std::shared_ptr<simEvent>, std::shared_ptr<Process>>> waitQ;
 
@@ -110,8 +108,6 @@ private:
     //std::vector< std::tuple< int, std::string, std::tuple<int, int, int>, std::tuple<int, int>, std::vector< std::tuple<int, std::tuple<double, double>, std::string, std::vector<int>, std::vector<int> > > > > comm_records;
    
     //std::vector< std::tuple< int, std::string, std::vector<int>, std::string, std::vector<double>, std::string, std::vector<int> > > call_records;
-
-    //std::list<std::tuple<double, std::shared_ptr<simEvent>>> eventList;
 
     std::map<int, SST::Link*> C_Link;
 

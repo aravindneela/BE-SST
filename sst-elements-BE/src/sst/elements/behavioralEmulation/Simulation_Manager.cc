@@ -1,5 +1,7 @@
 #include <signal.h>
 #include "Simulation_Manager.h"
+#include "Python.h"
+
 
 using namespace SST;
 using namespace SST::BEComponent;
@@ -14,56 +16,102 @@ std::tuple<std::vector<double>, std::queue<std::shared_ptr<eventTemplate>>> simM
     std::string lookup_file, interpolation;
 
     if(operations.find(operation) != operations.end()) std::tie(lookup_file, interpolation, templates) = operations[operation];
-  
+      
     else {
         std::cout<<"Error accessing details of Operation "<<operation<<"\n";
         throw std::runtime_error("Error accessing details of Operation "+operation+"\n");
     }
   
+    
+    //std::cout<<"Inside lookup "<<"Lookup file ="<<lookup_file<<"  Interpolation scheme is "<<interpolation<<"\n";
+
+    
     if(lookup_file != "None")
     { 
-        /*if(self_gid == 7) {
-            for(int j =0; j<inputs.size(); j++) std::cout<<inputs[j]<<" ";
-            printf("\n");
-        }*/
+        if(interpolation != "Equation")
+        {
+                /*if(self_gid == 7) {
+                    for(int j =0; j<inputs.size(); j++) std::cout<<inputs[j]<<" ";
+                    printf("\n");
+                }*/
 
-        lookup_cache = getCache();
-    
-        for(auto itr = lookup_cache.begin(); itr != lookup_cache.end(); itr++)
-        {
-            if(std::get<0>(itr->first) == lookup_file && vectorCheck(inputs, std::get<1>(itr->first))) {
-                outputs = itr->second;
+                lookup_cache = getCache();
+            //std::cout<<"begining \n";
+            
+            /*for(auto itr = lookup_cache.begin(); itr != lookup_cache.end(); itr++)
+                {
+            std::cout<<std::get<0>(itr->first)<<"--";
+            }
+            
+            std::cout<<"\n \n";*/
+            //Raja - What is it doing? the following for loop
+            
+                for(auto itr = lookup_cache.begin(); itr != lookup_cache.end(); itr++)
+                {
+            //std::cout<<"std::get<0>(itr->first)="<<std::get<0>(itr->first)<<"\n";
+                    if(std::get<0>(itr->first) == lookup_file && vectorCheck(inputs, std::get<1>(itr->first))) 
+                {
+                        outputs = itr->second;
                 present = true;
-                break;
-            }    
+                //int kkk=1;
+                //if(lookup_file == "vulcan-compute-conv.csv")
+                //for(auto itr_new = outputs.begin(); itr_new != outputs.end(); itr_new++,kkk++)
+                //{
+                //std::cout<<kkk<<"."<<*itr_new<<"\n";
+                //}
+                        break;
+                    }    
+                }
+            
+                if(!present)
+                {
+                    PyObject* inputList = vectorToList(inputs);
+                    PyObject* filename = PyString_FromString(lookup_file.c_str());
+                    PyObject* i_scheme;
+
+                    //std::cout<<"File name ="<<lookup_file.c_str()<<"\n";
+                    
+                    if(interpolation == "None" || interpolation == "default") i_scheme = PyString_FromString((sim_flags->interpolation_scheme).c_str());
+                    else i_scheme = PyString_FromString(interpolation.c_str());
+            
+                //std::cout<<"calling lookupvalue function \t";
+                    PyObject* outputList = PyObject_CallFunctionObjArgs(myFunction, filename, inputList, i_scheme, NULL);
+                        //PyObject* myValue = PyList_GetItem(outputList, 0);
+                        //double result = PyFloat_AsDouble(myValue);
+                //std::cout<<"After calling lookupvalue function \n";
+                outputs = listToVector(outputList);
+                    lookup_cache[make_tuple(lookup_file, inputs)] = outputs;
+                    updateCache(lookup_cache);
+                }
         }
-      
-        if(!present)
+        else
         {
+            /*std::cout<<"Lookup_file = "<<lookup_file<<"\n";
+            
+            std::cout<<"Inside new equation "<<lookup_file<<"\n";
+            std::cout<<"equation in string format"<<lookup_file.c_str()<<"\n";*/
+            
             PyObject* inputList = vectorToList(inputs);
             PyObject* filename = PyString_FromString(lookup_file.c_str());
-            PyObject* i_scheme;
-
-            if(interpolation == "None" || interpolation == "default") i_scheme = PyString_FromString((sim_flags->interpolation_scheme).c_str());
-            else i_scheme = PyString_FromString(interpolation.c_str());
-
-            PyObject* outputList = PyObject_CallFunctionObjArgs(myFunction, filename, inputList, i_scheme, NULL);
-                //PyObject* myValue = PyList_GetItem(outputList, 0);
-                //double result = PyFloat_AsDouble(myValue);
+            //PyObject* i_scheme;  
+            	  
+            PyObject* outputList = PyObject_CallFunctionObjArgs(myFunctionEquation, filename, inputList, NULL);
+        
+//            std::cout<<"Back home \n";
             outputs = listToVector(outputList);
-            lookup_cache[make_tuple(lookup_file, inputs)] = outputs;
-            updateCache(lookup_cache);
+//             std::cout<<"Equation value finally = "<<outputs[0]<<"\n";
         }
       
     } 
 
-    return std::make_tuple (outputs, templates);
+    return std::make_tuple (outputs, templates); //Raja - What does this contain
 
 }
 
 
-PyObject* simManager::vectorToList(std::vector<float> data){
-
+PyObject* simManager::vectorToList(std::vector<float> data)
+{
+  //std::cout<<"Data size ="<<data.size()<<"\n";
   PyObject* listObj = PyList_New( data.size() );
 	if (!listObj) throw std::runtime_error("Unable to allocate memory for Python list");
 	for (int i = 0; i < data.size(); i++) {
@@ -100,8 +148,8 @@ std::vector<double> simManager::listToVector(PyObject* incoming){
 }
 
 
-bool simManager::vectorCheck(std::vector<float> list1, std::vector<float> list2){
-
+bool simManager::vectorCheck(std::vector<float> list1, std::vector<float> list2)
+{
     if(list1.size() == list2.size())
     {
         for(int i = 0; i < list1.size(); i++)
@@ -115,7 +163,7 @@ bool simManager::vectorCheck(std::vector<float> list1, std::vector<float> list2)
 }
 
 
-int simManager::obtain(std::string property){  //generalised implementation reqd
+int simManager::obtain(std::string property){  //generalised implementation reqd  - Raja What does this comment means??
 
     try
     {
@@ -156,28 +204,32 @@ std::shared_ptr<Routine> simManager::call(int eventId, int source_gid, int sourc
     int targetGID;
     if(self_gid == source_gid) targetGID = relations[target];
     else targetGID = target_gid;
+       //std::cout<<"Target GID ="<<targetGID<<"\t Self Gid ="<<self_gid<<"\n";
     std::vector<double> outputs;
     std::queue<std::shared_ptr<eventTemplate>> templates;
 
     if(targetGID == self_gid)
     {
+      //std::cout<<"Inside Simulation_Manager Line 166 If \n";
         std::tie(outputs, templates) = lookup(operation, inputs);
-        
+	//std::cout<<"Inside Simulation_Manager call LIne 187 \n";
         if(source_gid != self_gid && call_type == "blocking")
         {
+	   // std::cout<<"Inside Simulation_Manager call LIne 189 \n";
             //std::cout<<"Call being serviced by "<<self_gid<<" for "<<source_gid;
             std::vector<int> sourcePath;
             sourcePath.push_back(self_gid);
             sourcePath.push_back(source_gid);
             templates.push(std::make_shared<ackTemplate>(source_pid, sourcePath, source_gid, true));
         }
-
+	//std::cout<<"Inside Simulation_Manager call LIne 197 \n";
         auto routine = std::make_shared<Routine>(source_gid, eventId, hardware_state, inputs, outputs, templates, "call");  //source_gid instead of targetGid because the owner of call is the source
         return routine;
     }
 
     else
     {
+        //std::cout<<"Inside Simulation_Manager Line 183 Else \n";
         templates.push(std::make_shared<callTemplate>(self_gid, source_pid, targetGID, target, operation, inputs, call_type, true));
         if(call_type == "blocking") templates.push(std::make_shared<waitTemplate>(true));
         auto routine = std::make_shared<Routine>(self_gid, eventId, hardware_state, inputs, outputs, templates, "call");  //previously it was targetGID instead of self_gid. Check if self_gid is okay
@@ -378,7 +430,9 @@ void simManager::buildInformation(std::string templates, std::string relation_in
 
     for(auto itr = list1.begin(); itr != list1.end(); itr++)
     {
-        //std::cout<<"itr: "<<*itr<<"\n";
+        /*std::cout<<"Before operation \n";
+        std::cout<<"itr: "<<*itr<<"\n";
+        std::cout<<"After operation \n";*/
         list2 = decode(*itr, ": (");
         std::string opr, oprList, lookup_s, events_s, interpolation_s;
  
@@ -407,8 +461,13 @@ void simManager::buildInformation(std::string templates, std::string relation_in
             std::vector<std::string> list5;
 
             if(itr1->size() > 2)
+            {
+//                 std::cout<<"Inside list5 "<<*itr1<<"\n";
                 list5 = decode(itr1->substr(1, itr1->size()-2), " ");
-
+//                 std::cout<<"size of list 5"<<list5.size()<<"\n";
+                //for(auto raj = list5.begin(); raj!= list5.end(); raj++)
+                  //  std::cout<<"List 5 value = "<<*raj<<"\n";
+            }
             op_template.push(buildTemplate(list5));
 
         }
@@ -557,9 +616,11 @@ std::shared_ptr<eventTemplate> simManager::buildTemplate(std::vector<std::string
     std::string type;
     std::vector<std::string> list1;
     Procrastinator* container;
-
+//     std::cout<<"Inside buildTemplate, size of input list is = "<<t_list.size()<<"\n";
     if(t_list.back() == "True") prov = true;
     else prov = false;
+    
+//    std::cout<<"inside buildTemplate "<<t_list[0]<<"  "<<t_list[1]<<"  "<<t_list[2]<<"\n";
 
     if(t_list[0] == "condition")
         if(t_list[3] == "True") t_list[3] = "1.0";
@@ -590,7 +651,11 @@ std::shared_ptr<eventTemplate> simManager::buildTemplate(std::vector<std::string
 
     else if(t_list[0] == "timeout") 
     {
+//         std::cout<<"check 1 "<<t_list[2]<<"\n";
         list1 = decode(t_list[1], "::");
+//         std::cout<<"After decode, size of input list is = "<<list1.size()<<"\n";
+       // std::cout<<"Inside buildTemplate "<< list1[0]<<"\n";
+        
         if(!list1.empty()) std::tie(type, container) = value_find(list1);
 
         if(type == "double") return std::make_shared<timeoutTemplate<double>>(stod(t_list[1]), "double", prov);
@@ -618,17 +683,20 @@ std::tuple<std::string, Procrastinator*> simManager::value_find(std::vector<std:
 {
     try
     {
+//         std::cout<<"Inside try block start "<<list[0]<<"\n";
         double d = stod(list[0]);
         Procrastinator *p = NULL;
+       // std::cout<<"Inside try block \n";
         return std::tie("double", p);
     }
 
     catch(...)
     {
-       
+        
         std::string math_operation;
         std::tuple<std::string, Procrastinator*> operandValue;
-
+//         std::cout<<"List size ="<<list.size()<<"\n";
+        
         if(list.size() > 2)
         {
             std::vector<std::string> subList = list;
@@ -658,13 +726,25 @@ std::tuple<std::string, Procrastinator*> simManager::value_find(std::vector<std:
             else if(std::get<0>(operandValue) == "procrastinator") o = dynamic_cast<outputProcrastinator *>(o->operate(math_operation, 0.0, std::get<1>(operandValue)));
             return std::tie("procrastinator", o);
         }
-        else if(list1[0] == "Random"){
+        else if(list1[0] == "Random")
+        {
+ 
+            randomProcrastinator *r = new randomProcrastinator(0);
+//             std::cout<<"Inside random value_find(), std::Get<0> (operandvalue)"<<std::get<1>(operandValue)<<"\n";
+            if(std::get<0>(operandValue) == "double") r = dynamic_cast<randomProcrastinator *>(r->operate(math_operation, stod(list[2]), std::get<1>(operandValue)));
+            else if(std::get<0>(operandValue) == "procrastinator") r = dynamic_cast<randomProcrastinator *>(r->operate(math_operation, 0.0, std::get<1>(operandValue)));
+//             std::cout<<"Inside Random"<<std::get<1>(operandValue)<<"\n";
+            return std::tie("procrastinator", r);
+        }
+        if(list1[0] == "Equation")
+        {
             randomProcrastinator *r = new randomProcrastinator(0);
             if(std::get<0>(operandValue) == "double") r = dynamic_cast<randomProcrastinator *>(r->operate(math_operation, stod(list[2]), std::get<1>(operandValue)));
             else if(std::get<0>(operandValue) == "procrastinator") r = dynamic_cast<randomProcrastinator *>(r->operate(math_operation, 0.0, std::get<1>(operandValue)));
             return std::tie("procrastinator", r);
         }
-        else{
+        else
+        {
             Procrastinator *p = NULL;
             return std::tie("none", p);
         }

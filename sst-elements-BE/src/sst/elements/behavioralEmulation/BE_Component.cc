@@ -21,24 +21,26 @@ beComponent::beComponent(ComponentId_t id, Params& params) :
    //printf("Inside the SST component constructor \n");
    bool found;
 
+   //std::cout<<"size of int = "<<sizeof(int)<<"\n";
    self_gid = params.find<int64_t>("Component gid", 0, found);
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter gid\n");
     }
-
+    
    self_cid = params.find<int64_t>("Component cid", 0, found);
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter cid\n");
     }
 
-   if( self_gid == 0) std::cout<<"STARTED LAYOUT BUILD!!!\n";
+   //if( self_gid == 0) std::cout<<"STARTED LAYOUT BUILD!!!\n";
 
+   //Layout is none as of now
    sys_layout = params.find<std::string>("System Layout", "none", found);
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter layout\n");
     }
 
-   sys_flags = params.find<std::string>("Flags", "none", found);
+   sys_flags = params.find<std::string>("Flags", "none", found); // -v -i means interpolation sheme -d debug 
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter flags\n");
     }
@@ -48,37 +50,37 @@ beComponent::beComponent(ComponentId_t id, Params& params) :
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter clock\n");
     } 
 
-   self_kind = params.find<std::string>("Component kind", "none", found);
+   self_kind = params.find<std::string>("Component kind", "none", found); //processor code or link ... config file bgq core- strng
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter kind\n");
     }
 
-   self_ordinal = params.find<int64_t>("Component ordinal", 0, found);
+   self_ordinal = params.find<int64_t>("Component ordinal", 0, found); //Routing address its like rank 
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter ordinal\n");
     }
 
-   attributes = params.find<std::string>("Attributes", "none", found);
+   attributes = params.find<std::string>("Attributes", "none", found); //uasge waiting 
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter Attributes\n");
     }
 
-   operations = params.find<std::string>("Operations", "none", found);
+   operations = params.find<std::string>("Operations", "none", found); //
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter operations\n");
     }
 
-   relations = params.find<std::string>("Relations", "none", found);
+   relations = params.find<std::string>("Relations", "none", found); //
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter relations\n");
     }
 
-   properties = params.find<std::string>("Properties", "none", found);
+   properties = params.find<std::string>("Properties", "none", found); //
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter properties\n");
     }
 
-   mailboxes = params.find<std::string>("Mailboxes", "none", found);
+   mailboxes = params.find<std::string>("Mailboxes", "none", found); //
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter mailboxes\n");
     }
@@ -93,7 +95,7 @@ beComponent::beComponent(ComponentId_t id, Params& params) :
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter topology\n");
     }
 
-   link_list = params.find<std::string>("Link list", "none", found);
+   link_list = params.find<std::string>("Link list", "none", found); //will give the list of gid's which each comp is connected to 
     if (!found) {
         Simulation::getSimulation()->getSimulationOutput().fatal(CALL_INFO, -1,"couldn't find parameter link list\n");
     }
@@ -131,8 +133,42 @@ beComponent::beComponent(ComponentId_t id, Params& params) :
     self_time = 0.0;
     key = 0;
     
-    componentProcess = std::make_shared<Process>();
+    /*std::cout<<"ID="<<id<<std::endl;
+    
+      if(id==1 || id==0 || id ==8 ||id==2 || id==9)
+      {
+	  std::cout<<std::endl;
+	  std::cout<<std::endl;
+	  std::cout<<"id="<<id<<std::endl;
+          std::cout<<"self_gid = "<<self_gid<<"\t size is ="<<sizeof(self_gid)<<std::endl;
+	  std::cout<<"self_cid = "<<self_cid<<"\t size is ="<<sizeof(self_cid)<<std::endl;	  
+	  std::cout<<"sys_layout = "<<sys_layout<<"\t size is ="<<sys_layout.size()<<std::endl;
+	  std::cout<<"sys flags = "<<sys_flags<<"\t size is ="<<sys_flags.size()<<std::endl;
+	  std::cout<<"self clock = "<<self_clock<<"\t size is ="<<sizeof(self_clock)<<std::endl;
+	  std::cout<<"self kind = "<<self_kind<<"\t size is ="<<self_kind.size()<<std::endl;
+	  std::cout<<"self ordinal = "<<self_ordinal<<"\t size is ="<<sizeof(self_ordinal)<<std::endl;
+	  std::cout<<"Attribute = "<<attributes<<"\t size is ="<<attributes.size()<<std::endl;
+	  std::cout<<"Relations = "<<relations<<"\t size is ="<<relations.size()<<std::endl;
+	  std::cout<<"Operations = "<<operations<<"\t size is ="<<operations.size()<<std::endl;
+	  std::cout<<"Properties = "<<properties<<"\t size is ="<<properties.size()<<std::endl;
+	  std::cout<<"mailboxes = "<<mailboxes<<"\t size is ="<<mailboxes.size()<<std::endl;
+	  std::cout<<"link_list = "<<link_list<<"\t size is ="<<link_list.size()<<std::endl;
+	  std::cout<<"topology = "<<topology<<"\t size is ="<<topology.size()<<std::endl;
+	  std::cout<<"num_links = "<<num_links<<"\t size is ="<<sizeof(num_links)<<std::endl;
+	  std::cout<<"plus_list = "<<plus_list<<"\t size is ="<<plus_list.size()<<std::endl;
+	  std::cout<<"minus_list = "<<minus_list<<"\t size is ="<<minus_list.size()<<std::endl;
+	  std::cout<<"parent = "<<parent<<"\t size is ="<<sizeof(parent)<<std::endl;
+	  std::cout<<"children_s = "<<children_s<<"\t size is ="<<children_s.size()<<std::endl;
+	  std::cout<<"containerDimension_list = "<<containerDimension_list<<"\t size is ="<<containerDimension_list.size()<<std::endl;
+	  std::cout<<"program_file = "<<program_file<<"\t size is ="<<program_file.size()<<std::endl;
+      
+    }*/
+    
    
+    componentProcess = std::make_shared<Process>();
+    
+    
+    
     /* Configure the self link for computation events in each Component */
     selfEventLink = configureSelfLink("Selflink", new Event::Handler<beComponent>(this, &beComponent::linkRecvEvent));
 
@@ -140,9 +176,9 @@ beComponent::beComponent(ComponentId_t id, Params& params) :
     registerClock(std::to_string(self_clock)+"Hz", new Clock::Handler<beComponent>(this, 
                   &beComponent::clockTic));
 
-    if( self_gid == 0) {
+    if(self_gid == 0) {
         barrierCount = 0;
-        std::cout<<"LAYOUT BUILD OVER!!!\n";
+        //std::cout<<"LAYOUT BUILD OVER!!!\n";
     }
 
 }
@@ -163,13 +199,17 @@ beComponent::beComponent() : Component(-1)
 void beComponent::setup()
 {
 
+  //std::cout<<"Rajashekar";
+   //Hello
     /* Python lookup module setup */
     Py_Initialize();
     PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append(\"/home/ajay/scratch/src/sst-elements-library-6.0.0/src/sst/elements/behavioralEmulation/tests\")");
+    //PyRun_SimpleString("sys.path.append(\"/home/vol-ccmt2/scratch/src/sst-elements-BE/src/sst/elements/behavioralEmulation/tests\")");
+    PyRun_SimpleString("sys.path.append(\"/p/lscratchh/aravind/scratch/src/sst-elements-library-6.0.0/src/sst/elements/behavioralEmulation/tests\")");
     PyObject* myModuleString = PyString_FromString((char*)"lookup");
     PyObject* myModule = PyImport_Import(myModuleString);
     PyObject* myFunction = PyObject_GetAttrString(myModule,(char*)"lookupValue");
+    PyObject* myFunction_equation = PyObject_GetAttrString(myModule,(char*)"lookupEquation");
     
     /* Lookup cache setup */
     std::function<void(std::map<std::tuple<std::string, std::vector<float>>, std::vector<double>>)> updateCache = updateGlobalLookupCache;
@@ -179,8 +219,9 @@ void beComponent::setup()
     //if(self_gid > 0) std::cout<<"\n"<<self_gid<<"- Simulation handler build started!\n";
     simulation_handler = std::make_shared<simManager>(self_gid, self_cid, self_ordinal, parent, operations, relations, properties, 
                                                       mailboxes, topology, containerDimension_list, plus_list, minus_list, 
-                                                      children_s, sys_flags, myFunction, updateCache, getCache);
+                                                      children_s, sys_flags, myFunction, myFunction_equation, updateCache, getCache);
 
+   //Raja - why this ?
     if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Simulation handler build successful!\n";
 
     /* configure out links */
@@ -191,7 +232,7 @@ void beComponent::setup()
     for(int i = 0; i < num_links; i++){
         l_gid = stoi(link_gids[i]);
         C_Link[l_gid] = configureLink("Link "+link_gids[i], new Event::Handler<beComponent>(this, &beComponent::linkRecvEvent));
-        assert(C_Link[l_gid]);
+	  assert(C_Link[l_gid]);
     }
 
     /* Set up executor process if there is an application program to be run */
@@ -214,7 +255,7 @@ void beComponent::setup()
     }
 
     /* Run the simulation */
-    run(0, 0, 0);    
+    run(componentProcess);    
 
 }
 
@@ -233,232 +274,6 @@ std::vector<std::string> beComponent::decode(std::string operand, std::string de
 
     return operandList;
             
-}
-
-
-void beComponent::build(Layout* layout, std::string file)
-{
-    
-    std::vector<std::string> list1; 
-    
-
-    list1 = decode(file, "\n");
-    
-    for(int i=0; i < 12; i++){
-
-        ////printf("loop iteration %d\n", i);
-        std::vector<std::string> list2, list3, list4, list5;
-
-        if(i==2 || i==4){
-
-            switch(i){
-     
-                case 2: list2 = decode(list1[i].substr(3, list1[i].size()-6), "]], [[");
-                        for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++)
-                        {
-                            std::string temp1 = *itr1;
-                            std::vector<std::vector<int>> sublist1;
-                            list3 = decode(temp1, "], [");
-                            for(auto itr2 = list3.begin(); itr2 != list3.end(); itr2++){
-                                std::string temp2 = *itr2;
-                                std::vector<int> sublist2;
-                                list4 = decode(temp2, ", ");
-                                for(auto itr3 = list4.begin(); itr3 != list4.end(); itr3++)
-                                    if(*itr3 != "")
-                                      sublist2.push_back(stoi(*itr3));                                
-                                
-                                sublist1.push_back(sublist2);
-                            }                                
-                            layout->edges.push_back(sublist1);
-                               
-                        }
-                        break;
-
-                case 4: list2 = decode(list1[i].substr(2, list1[i].size()-4), "], [");
-                        for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++)
-                        {
-                            std::string temp1 = *itr1;
-                            std::vector<int> sublist1;
-                            list3 = decode(temp1, ", ");
-                            for(auto itr2 = list3.begin(); itr2 != list3.end(); itr2++)
-                                if(*itr2 != "")
-                                  sublist1.push_back(stoi(*itr2));                                
-                            layout->children.push_back(sublist1);
-                               
-                        }
-                        break;
-           
-            }
-
-
-        } 
-
-        else if(i==0 || i==1 || i==3){
-
-            if(i==3)
-                list2 = decode(list1[i].substr(1, list1[i].size()-2), ", "); 
-
-            switch(i){
-
-                /*case 0: for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++){
-                            if(*itr1 != "")
-                              layout->cid.push_back(stoi(*itr1));
-                        }
-                        break;*/
-
-                /*case 1: for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++){
-                            std::string temp1 = *itr1;
-                            if(*itr1 != "")
-                              layout->kinds.push_back(temp1.substr(1, temp1.size()-2));
-                        }
-                        break;*/
-
-                case 3: for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++){
-                            if(*itr1 == "null")
-                              layout->parents.push_back(-1);
-                            else if(*itr1 != "")
-                              layout->parents.push_back(stoi(*itr1));
-                        }
-                        break;
-
-                default: break;
- 
-            }
-      
-        }    
-
-        else if(i==6 || i==9 || i==10){
-
-            list2 = decode(list1[i].substr(1, list1[i].size()-2), ", ");
-            
-            switch(i){
-
-                case 6: for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++)
-                        {
-                            std::string temp1 = *itr1;
-                            std::string key = "", value = "";
-                            list3 = decode(temp1, ": ");
-                            if(list3[0].size() > 2)
-                                key = list3[0].substr(1, list3[0].size()-2);
-                            if(list3.size() > 1)
-                                value = list3[1].substr(1, list3[1].size()-2);
-                            if(key != "")
-                              layout->netnames[stoi(key)] = value;       
-                        }
-                        break;
-
-                case 9: for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++)
-                        {
-                            std::string temp1 = *itr1;
-                            std::string key = "", value = "";
-                            list3 = decode(temp1, ": ");
-                            if(list3[0].size() > 2)
-                                key = list3[0].substr(1, list3[0].size()-2);
-                            if(list3.size() > 1)
-                                value = list3[1];
-                            if(key != "" && value != "")
-                              layout->ordinals[stoi(key)] = stoi(value);     
-                        }
-                        break;
-
-                case 10: for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++)
-                        {
-                            std::string temp1 = *itr1;
-                            std::string key = "", value = "";
-                            list3 = decode(temp1, ": ");
-                            if(list3[0].size() > 2)
-                                key = list3[0].substr(1, list3[0].size()-2);
-                            if(list3.size() > 1)
-                                value = list3[1];
-                            if(key != "" && value != "")
-                              layout->rordinals[stoi(key)] = stoi(value);       
-                        }
-                        break;
- 
-            }           
-
-        } 
-
-        else if(i==8){
-/*
-            list2 = decode(list1[i].substr(1, list1[i].size()-3), "}, ");
-
-            for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++){
-
-                std::string temp1 = *itr1;
-                list3 = decode(temp1, ": {");
-                if(list3.size() > 1)
-                    list4 = decode(list3[1], ", ");
-                std::map<std::string, int> submap;
-
-                for(auto itr2 = list4.begin(); itr2 != list4.end(); itr2++){
-                    std::string temp2 = *itr2;
-                    std::string key = "", value = "";
-                    list5 = decode(temp2, ": ");
-                    if(list5[0].size() > 2)
-                        key = list5[0].substr(1, list5[0].size()-2);
-                    if(list5.size() > 1)
-                        value = list5[1];
-                    if(value != "")
-                      submap[key] = stoi(value); 
-                }
-
-                std::string pkey = "";
-                if(list3[0].size() > 2)
-                    pkey = list3[0].substr(1, list3[0].size()-2);
-                if(pkey != "")
-                  layout->relations[stoi(pkey)] = submap;
-
-            }
-*/;
-        }
-
-        else{
-
-            list2 = decode(list1[i].substr(1, list1[i].size()-3), "], ");
-
-            for(auto itr1 = list2.begin(); itr1 != list2.end(); itr1++){
-
-                std::string temp1 = *itr1;
-                std::string pkey = "";
-
-                list3 = decode(temp1, ": [");
-
-                if(list3[0].size() > 2)
-                    pkey = list3[0].substr(1, list3[0].size()-2);
-                if(list3.size() > 1)
-                    list4 = decode(list3[1], ", ");
-
-                std::vector<int> sublist;
-
-                for(auto itr2 = list4.begin(); itr2 != list4.end(); itr2++){
-                    if(*itr2 != "")
-                      sublist.push_back(stoi(*itr2)); 
-                }
-
-
-                switch(i){
-
-                  case 5: if(pkey != "")
-                            layout->indices[stoi(pkey)] = sublist;
-                          break;
-
-                  case 7: if(pkey != "")
-                            layout->netsizes[stoi(pkey)] = sublist;
-                          break;
-
-                  case 11: if(pkey != "")
-                           layout->subordinals[stoi(pkey)] = sublist;
-                           break;
- 
-                }
-
-            }           
-
-        }
-
-    }
- 
 }
 
 
@@ -615,8 +430,8 @@ void beComponent::build(Layout* layout, std::string file)
 } */
 
 
-beCommEvent* beComponent::buildLinkEvent(std::string type, int so, int tar, std::vector<int> tlist, std::vector<int> list, int coid, std::string opp, std::string opid, std::string st){
-
+beCommEvent* beComponent::buildLinkEvent(std::string type, int so, int tar, std::vector<int> tlist, std::vector<int> list, int coid, std::string opp, std::string opid, std::string st)
+{
     beCommEvent* bev = new beCommEvent();
 
     bev->type 		= type;
@@ -630,20 +445,19 @@ beCommEvent* beComponent::buildLinkEvent(std::string type, int so, int tar, std:
     bev->sub_type 	= st;
     
     return bev;
-    
 }
 
 
-void beComponent::step(std::shared_ptr<Process> process){
-
-    //std::raise(SIGINT);
+void beComponent::step(std::shared_ptr<Process> process)
+{
     if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Stepping through " << process->type << std::endl; 
+    
     std::shared_ptr<simEvent> event = process->run();
 
     if (event != nullptr)
     {
-
-        if(process->type == "Executor") {
+        if(process->type == "Executor")
+        {
             std::vector<int> empty;
             //generateTrace(event, process, false, false, std::make_tuple(0, 0, 0, empty)); //generate event trace for compute events and communicate events at the source
         }
@@ -662,9 +476,12 @@ void beComponent::step(std::shared_ptr<Process> process){
 
 	else
             delay = 0;
-			
+	
+	  
 	double eventTime = self_time + delay;		
-		
+	
+	
+	
 	if (event_type == "condition")
         {
 	    auto ev = std::dynamic_pointer_cast<conditionEvent>(event);
@@ -705,18 +522,6 @@ void beComponent::step(std::shared_ptr<Process> process){
             C_Link[0]->send(bev);
         }
 
-/*        else if (event_type == "route")
-        {
-            auto route_ev = std::dynamic_pointer_cast<routeEvent>(event);
-            beCommEvent *bev;
-            bev = buildLinkEvent(self_time, "route", route_ev->source, route_ev->target, route_ev->locations, route_ev->gid, "", std::to_string(route_ev->pid), "");
-            routeQ.push(std::make_tuple(route_ev, process));
-
-            if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- source: "<<route_ev->source<<" and target: "<<route_ev->target<<" and gid: "<< route_ev->gid<<"\n";
-
-            C_Link[0]->send(bev);
-        }	
-*/
         else if (event_type == "receiveWait")
         {
             auto ev = std::dynamic_pointer_cast<recvWaitEvent>(event);
@@ -776,17 +581,46 @@ void beComponent::step(std::shared_ptr<Process> process){
         {		
             tick(eventTime, event, process);
 	}
-
+/*
 	else
         {
             auto ev = std::dynamic_pointer_cast<timeoutEvent>(event);
-            //upcoming.push(std::make_tuple(eventTime, ev, process));
+
             computeQ.push(std::make_tuple(eventTime, ev, process));
-            //upcoming.pop();
+
             std::vector<int> empty;
             beCommEvent *bev;
             bev = buildLinkEvent(ev->type, -1, -1, empty, empty, -1, "", "", "");
             selfEventLink->send(ev->value*self_clock, bev);
+	}
+*/
+	else
+        {
+//	  std::cout<<"else\n";
+            auto ev = std::dynamic_pointer_cast<timeoutEvent>(event);
+            std::vector<int> empty;           
+
+            if(simulation_handler->hardware_state["usage"] == 0.0)
+            {
+	      //std::cout<<"Inside if Line604\n";
+                computeQ.push(std::make_tuple(eventTime, ev, process));
+                simulation_handler->hardware_state["usage"] = 1.0;
+
+                beCommEvent *bev;
+                bev = buildLinkEvent(ev->type, -1, -1, empty, empty, -1, "", "", "");
+		//if(self_gid==1)
+		//std::cout<<"Before linkRecvEvnet \n";
+                selfEventLink->send(ev->value*self_clock, bev);
+		//if(self_gid==1)
+		//std::cout<<"After linkRecvEvnet \n";
+            }
+
+            else
+	    {
+	      //std::cout<<"Inside else Line 616\n";
+	      computeWaitQ.push(std::make_tuple(ev, process));
+	    }
+
 	}
 
     }
@@ -795,7 +629,8 @@ void beComponent::step(std::shared_ptr<Process> process){
     {
         if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Event in this process is now null \n";
 
-        if(process->type == "Routine") {
+        if(process->type == "Routine") 
+        {
             std::shared_ptr<Routine> routine = std::dynamic_pointer_cast<Routine>(process);
             std::vector<int> empty;
 
@@ -809,10 +644,10 @@ void beComponent::step(std::shared_ptr<Process> process){
 	    step(process->parent);
 	
 	process->parent = nullptr;
-
     }
 
 }
+
 
 void beComponent::tick(double eventTime, std::shared_ptr<simEvent> event, std::shared_ptr<Process> eventProcess)
 {
@@ -820,11 +655,8 @@ void beComponent::tick(double eventTime, std::shared_ptr<simEvent> event, std::s
     if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Inside tick for the event " << event->type << std::endl;
 
     eventProcess->state = simulation_handler->hardware_state;
-    //self_time = eventTime;
 
     handleEvents(event, eventProcess); 
-    //std::tuple<double, std::shared_ptr<simEvent>> previous_set = std::make_tuple(eventTime, event);
-    //eventList.push_back(previous_set);
 	
     if (eventProcess->children.empty() && eventProcess->parent != NULL){
 	step(eventProcess);
@@ -832,26 +664,23 @@ void beComponent::tick(double eventTime, std::shared_ptr<simEvent> event, std::s
 
 }
 
-void beComponent::walk(std::shared_ptr<Process> process){ 
 
-        std::stack<std::shared_ptr<Process>> children_q = process->children; 
+void beComponent::run(std::shared_ptr<Process> process)
+{ 
+    std::stack<std::shared_ptr<Process>> children_q = process->children; 
 
-	if (!children_q.empty()){
-		while(!children_q.empty()){ // for loop might be necessary
-			walk(children_q.top());
-                        children_q.pop();
-		}
+    if (!children_q.empty())
+    {
+        while(!children_q.empty())
+        {
+	    run(children_q.top());
+            children_q.pop();
 	}
-	else
-		step(process);
-}
+    }
 
+    else
+	step(process);
 
-void beComponent::run(double t_cap=0.0, time_t w_cap=0.0, int e_cap=0)
-{	
-
-	walk(componentProcess);
-	 
 }
 
 
@@ -871,14 +700,16 @@ bool beComponent::clockTic( Cycle_t )
 // incoming messages are scanned and deleted
 void beComponent::linkRecvEvent(Event *ev) 
 {
-
+//    if(self_gid==1)
+  //  std::cout<<"Inside linkRecvEvnet \n";
     beCommEvent *link_event = dynamic_cast<beCommEvent*>(ev);
+    
 
     if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Event received here for "<<self_kind<<". It is "<<link_event->type<<"\n";
 
     if (link_event)
     {       
-
+/*
         if(link_event->type == "timeout")
         {
             std::tuple<double, std::shared_ptr<timeoutEvent>, std::shared_ptr<Process>> entry = computeQ.front(); 
@@ -893,6 +724,41 @@ void beComponent::linkRecvEvent(Event *ev)
             tick(self_time, event, eventProcess);
 
             delete link_event;
+
+        }
+*/
+        if(link_event->type == "timeout")
+        {
+            std::tuple<double, std::shared_ptr<timeoutEvent>, std::shared_ptr<Process>> entry = computeQ.front(); 
+
+	    std::shared_ptr<simEvent> event = std::get<1>(entry);
+	    std::shared_ptr<Process> eventProcess = std::get<2>(entry);
+
+            computeQ.pop();
+
+            delete link_event;
+
+            simulation_handler->hardware_state["usage"] = 0.0;
+
+            if(!computeWaitQ.empty())
+            {
+		std::tuple<std::shared_ptr<timeoutEvent>, std::shared_ptr<Process>> pentry = computeWaitQ.front();
+                computeWaitQ.pop();
+            
+                std::shared_ptr<timeoutEvent> pev = std::get<0>(pentry);
+	        std::shared_ptr<Process> pevProcess = std::get<1>(pentry);
+                std::vector<int> empty;
+
+                computeQ.push(std::make_tuple(self_time, pev, pevProcess));
+
+                simulation_handler->hardware_state["usage"] = 1.0;
+
+                beCommEvent *bev;
+                bev = buildLinkEvent(pev->type, -1, -1, empty, empty, -1, "", "", "");
+
+                selfEventLink->send(pev->value*self_clock, bev);
+            }
+            tick(self_time, event, eventProcess);
 
         }
 
@@ -1083,40 +949,6 @@ void beComponent::linkRecvEvent(Event *ev)
 
         } 
 
-/*        else if(link_event->type == "route")
-        {
-
-            //auto route_ev = std::dynamic_pointer_cast<routeEvent>(link_event->event);
-            if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- this component received route from "<<link_event->comp_id<<"\n";
-
-            if( self_gid == 0){
-                std::vector<int> locations = simulation_handler->router->path(link_event->source, link_event->target);
-                simulation_handler->router->clear();
-       
-                beCommEvent *bev;
-                bev = buildLinkEvent(self_time, link_event->type, link_event->source, link_event->target, locations, 
-                                     link_event->comp_id, link_event->op_param, link_event->op_id, link_event->sub_type);
-
-                C_Link[link_event->comp_id]->send(bev);
-            }
-
-            else if( self_gid == link_event->comp_id){
-                std::shared_ptr<Message> messageProcess; 
-                std::tuple<std::shared_ptr<simEvent>, std::shared_ptr<Process>> entry = routeQ.front();
-	        std::shared_ptr<simEvent> event;
-	        event = std::get<0>(entry);
-	        messageProcess = std::dynamic_pointer_cast<Message>(std::get<1>(entry));
-                routeQ.pop(); 
-                messageProcess->locations = link_event->list;
-                if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Locations are: ";
-                if((simulation_handler->sim_flags)->debug == self_gid) for(int i=0; i<(link_event->list).size(); i++) std::cout<<(link_event->list)[i]<<" ";
-                tick(self_time, event, messageProcess);
-            }
-                              
-            delete link_event;
-
-        }      
-*/
         else if(link_event->type == "call")
         {
             if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Call Event received here for "<<self_kind<<". Called by "<<link_event->source<<" for "<<link_event->op_id<<"\n";
@@ -1145,182 +977,196 @@ void beComponent::linkRecvEvent(Event *ev)
 }
 
 
-void beComponent::handleEvents(std::shared_ptr<simEvent> event, std::shared_ptr<Process> eventProcess){
+void beComponent::handleEvents(std::shared_ptr<simEvent> event, std::shared_ptr<Process> eventProcess)
+{
+    std::string event_type = event->type;
 
-	std::string event_type = event->type;
+    if (event_type == "change")
+    {
+        auto ev = std::dynamic_pointer_cast<changeEvent>(event);        
+        ev->state[ev->attribute] = ev->value;
 
-	if (event_type == "change"){
+        simulation_handler->hardware_state[ev->attribute] = ev->value;
 
-             auto ev = std::dynamic_pointer_cast<changeEvent>(event);
-             ev->state[ev->attribute] = ev->value;
-             simulation_handler->hardware_state[ev->attribute] = ev->value;
-             if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling change event\n", self_gid);
-             //if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"Watchlist length is "<<watchList.size()<<"\n";
-             bool process_ready = false;
-             std::shared_ptr<conditionEvent> cond_event;
-             std::shared_ptr<Process> cond_process;
+        if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling change event\n", self_gid);
+        //if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"Watchlist length is "<<watchList.size()<<"\n";
+        
+        bool process_ready = false;     
+        std::shared_ptr<conditionEvent> cond_event;
+        std::shared_ptr<Process> cond_process;
 
-             for (auto itr = watchList.begin(); itr != watchList.end(); itr++)         //Might have bugs...check!!!
-             {         
-                 cond_event = std::get<0>(itr->second);
-                 cond_process = std::get<1>(itr->second);
-                 if(cond_event->conditionFunction(simulation_handler->hardware_state[cond_event->attribute], cond_event->value))
-                 {
-                     watchList.erase(itr);
-                     process_ready = true;
-                     //if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"Executing one waiting routine process from the watchList\n";
-                     break;
-                 }
+        for (auto itr = watchList.begin(); itr != watchList.end(); itr++)         //Might have bugs...check!!!
+        {         
+            cond_event = std::get<0>(itr->second);
+            cond_process = std::get<1>(itr->second);
 
-             }
+            if(cond_event->conditionFunction(simulation_handler->hardware_state[cond_event->attribute], cond_event->value))
+            {
+                watchList.erase(itr);
+                process_ready = true;
+                //if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"Executing one waiting routine process from the watchList\n";
+                break;
+            }
+        }
              
-             if(process_ready == true) tick(self_time, cond_event, cond_process);
+        if(process_ready == true) tick(self_time, cond_event, cond_process);
           
-	}
+    }
 
-	else if (event_type == "timeout")
+    else if (event_type == "timeout")
+    {
+	if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling timeout event\n", self_gid);
+    }
+
+    else if (event_type == "condition")
+    {
+	if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling condition event\n", self_gid); 
+    }
+
+    else if (event_type == "communicate")
+    {
+        auto comm_event = std::dynamic_pointer_cast<commEvent>(event);
+        int next_hop = -1;
+
+        if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Forwarding the message to the next component %d\n", self_gid, next_hop);
+
+        /* calculate next hop */ 
+        if(self_ordinal != -1)
         {
-	    if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling timeout event\n", self_gid);
-	}
+            int hier_target = (comm_event->tarlist).back();
+            int targetOneLevelDown = -1;
 
-	else if (event_type == "condition")
+            if((comm_event->tarlist).size() > 1) targetOneLevelDown = (comm_event->tarlist).end()[-2];
+
+            std::tuple<bool, int, int> route_set = (simulation_handler->dynamicRouter)->findNextHop(hier_target, targetOneLevelDown);
+
+            next_hop = std::get<1>(route_set);
+
+            if(std::get<0>(route_set) == 1) (comm_event->tarlist).push_back(std::get<2>(route_set));
+
+            else if(std::get<0>(route_set) == 1) (comm_event->tarlist).pop_back();
+        }
+
+        else
         {
-	    if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling condition event\n", self_gid); 
-	}
-
-	else if (event_type == "communicate")
-        {
-
-            auto comm_event = std::dynamic_pointer_cast<commEvent>(event);
-            int next_hop = -1;
-
-            if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Forwarding the message to the next component %d\n", self_gid, next_hop);
-
-            /* calculate next hop */ 
-            if(self_ordinal != -1)
-            {
-                int hier_target = (comm_event->tarlist).back();
-                int targetOneLevelDown = -1;
-
-                if((comm_event->tarlist).size() > 1) targetOneLevelDown = (comm_event->tarlist).end()[-2];
-
-                std::tuple<bool, int, int> route_set = (simulation_handler->dynamicRouter)->findNextHop(hier_target, targetOneLevelDown);
-
-                next_hop = std::get<1>(route_set);
-
-                if(std::get<0>(route_set) == 1) (comm_event->tarlist).push_back(std::get<2>(route_set));
-
-                else if(std::get<0>(route_set) == 1) (comm_event->tarlist).pop_back();
-            }
-
-            else
-            {
-                int other_end = comm_event->locations[(comm_event->locations).size() - 2];
+            int other_end = comm_event->locations[(comm_event->locations).size() - 2];
                  
-                for(auto itr = C_Link.begin(); itr != C_Link.end(); itr++) {
-                    if(itr->first == other_end) continue;
-                    else next_hop = itr->first;
-                }
+            for(auto itr = C_Link.begin(); itr != C_Link.end(); itr++) 
+            {
+                if(itr->first == other_end) continue;
+                else next_hop = itr->first;
             }
+        }
 
-            beCommEvent *bev;
-            bev = buildLinkEvent(comm_event->type, comm_event->source, comm_event->target, comm_event->tarlist, comm_event->locations, comm_event->pid, 
-                                 std::to_string(comm_event->size), std::to_string(comm_event->tag), comm_event->comm_type);
+        beCommEvent *bev;
+        bev = buildLinkEvent(comm_event->type, comm_event->source, comm_event->target, comm_event->tarlist, comm_event->locations, comm_event->pid, 
+                             std::to_string(comm_event->size), std::to_string(comm_event->tag), comm_event->comm_type);
 
-            if(next_hop >= 0) C_Link[next_hop]->send(bev);
+        if(next_hop >= 0) C_Link[next_hop]->send(bev);
                 
+    }
+
+    else if (event_type == "initiate communication")
+    {
+	if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling communication initiation\n", self_gid);
+
+        auto messageProcess = std::dynamic_pointer_cast<Message>(eventProcess);
+        auto comm_event = std::dynamic_pointer_cast<commEvent>(event);
+
+        (comm_event->tarlist).push_back(comm_event->target);
+
+        beCommEvent *bev;
+        bev = buildLinkEvent("communicate", comm_event->source, comm_event->target, comm_event->tarlist, comm_event->locations, comm_event->pid, 
+                             std::to_string(comm_event->size), std::to_string(comm_event->tag), comm_event->comm_type);
+
+        selfEventLink->send(bev);
+                
+    }
+
+    else if (event_type == "call")
+    {
+        auto call_event = std::dynamic_pointer_cast<callEvent>(event);
+
+        std::vector<float> floatInputs = call_event->inputs;
+        std::vector<int> integerInputs(floatInputs.begin(), floatInputs.end());
+        std::vector<int> empty;
+
+        beCommEvent *bev;
+        bev = buildLinkEvent(call_event->type, call_event->source_gid, call_event->target_gid, empty, integerInputs,  
+                             call_event->source_pid, call_event->target_family, call_event->operation, call_event->call_type);
+
+        int target = call_event->target_gid;
+
+        if(target >= 0) C_Link[target]->send(bev);
+        if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Calling the component "<<target<<"\n";
+                
+    }
+
+    else if (event_type == "acknowledge")
+    {
+        auto ack_ev = std::dynamic_pointer_cast<ackEvent>(event);
+
+        std::vector<int> locations = ack_ev->locations;
+        std::vector<int> empty;
+        int pid = ack_ev->pid;
+        int nxt_hop = ack_ev->next_hop;
+
+        beCommEvent *bev;
+        bev = buildLinkEvent("acknowledge", -1, -1, empty, locations, pid, "1", "", "");
+
+        if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Sending ack to "<<nxt_hop<<" from "<<self_gid<<"\n";
+        
+        if(nxt_hop == self_gid) selfEventLink->send(bev);
+        else if(nxt_hop >= 0) C_Link[nxt_hop]->send(bev);        
+    }
+
+    else if (event_type == "subprocess")
+    {
+        auto ev = std::dynamic_pointer_cast<subprocessEvent>(event);
+                
+        if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling subprocess event\n", self_gid);
+		
+        while (!ev->processes.empty())
+        {                      
+	    eventProcess->append(ev->processes.front()); //what if there are more than one routines in the sub process event 		
+	    step(ev->processes.front());
+	    ev->processes.pop(); 
 	}
 
-	else if (event_type == "initiate communication")
+    }
+
+    else if (event_type == "autoprocess")
+    {
+	auto ev = std::dynamic_pointer_cast<autoprocessEvent>(event);
+
+        if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling autoprocess event\n", self_gid);
+	
+	while (!ev->processes.empty())
         {
-
-	    if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling communication initiation\n", self_gid);
-
-            auto messageProcess = std::dynamic_pointer_cast<Message>(eventProcess);
-            auto comm_event = std::dynamic_pointer_cast<commEvent>(event);
-
-            (comm_event->tarlist).push_back(comm_event->target);
-
-            beCommEvent *bev;
-            bev = buildLinkEvent("communicate", comm_event->source, comm_event->target, comm_event->tarlist, comm_event->locations, comm_event->pid, 
-                                 std::to_string(comm_event->size), std::to_string(comm_event->tag), comm_event->comm_type);
-
-            selfEventLink->send(0.000000718, bev);
-                
+	    componentProcess->append(ev->processes.front());
+	    step(ev->processes.front());
+	    ev->processes.pop();
 	}
 
-	else if (event_type == "call"){
+    }
 
-                auto call_event = std::dynamic_pointer_cast<callEvent>(event);
+    else if (event_type == "barrier")
+    {
+        if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling barrier event\n", self_gid);
+    }
 
-                std::vector<float> floatInputs = call_event->inputs;
-                std::vector<int> integerInputs(floatInputs.begin(), floatInputs.end());
-                std::vector<int> empty;
+    else if (event_type == "wait")
+    {
+	if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling wait event\n", self_gid);
+    }
 
-                beCommEvent *bev;
-                bev = buildLinkEvent(call_event->type, call_event->source_gid, call_event->target_gid, empty, integerInputs,  
-                                     call_event->source_pid, call_event->target_family, call_event->operation, call_event->call_type);
-
-                int target = call_event->target_gid;
-
-                if(target >= 0) C_Link[target]->send(bev);
-                if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Calling the component "<<target<<"\n";
-                
-	}
-
-	else if (event_type == "acknowledge"){
-
-                auto ack_ev = std::dynamic_pointer_cast<ackEvent>(event);
-                std::vector<int> locations = ack_ev->locations;
-                std::vector<int> empty;
-                int pid = ack_ev->pid;
-                int nxt_hop = ack_ev->next_hop;
-
-                beCommEvent *bev;
-                bev = buildLinkEvent("acknowledge", -1, -1, empty, locations, pid, "1", "", "");
-
-                if((simulation_handler->sim_flags)->debug == self_gid) std::cout<<"GID: "<<self_gid<<" -- Sending ack to "<<nxt_hop<<" from "<<self_gid<<"\n";
-                if(nxt_hop == self_gid) selfEventLink->send(bev);
-                else if(nxt_hop >= 0) C_Link[nxt_hop]->send(bev);
-                
-	}
-
-	else if (event_type == "subprocess"){
-
-		auto ev = std::dynamic_pointer_cast<subprocessEvent>(event);
-                if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling subprocess event\n", self_gid);
-		while (!ev->processes.empty()){                      
-			eventProcess->append(ev->processes.front()); //what if there are more than one routines in the sub process event 		
-			step(ev->processes.front());
-			ev->processes.pop(); 
-		}
-
-	}
-
-	else if (event_type == "autoprocess"){
-
-		auto ev = std::dynamic_pointer_cast<autoprocessEvent>(event);
-                if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling autoprocess event\n", self_gid);
-		while (!ev->processes.empty()){
-			componentProcess->append(ev->processes.front());
-			step(ev->processes.front());
-			ev->processes.pop();
-		}
-	}
-
-	else if (event_type == "barrier"){
-	    if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling barrier event\n", self_gid);
-	}
-
-	else if (event_type == "wait"){
-	    if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling wait event\n", self_gid);
-	}
-
-	else if (event_type == "terminate"){
-            if(self_cid == 0) std::cout<<(getCurrentSimTimeNano()*0.000000001)<<"\n";
-            if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling terminate event. Component simulation terminating\n", self_gid);
-            primaryComponentOKToEndSim();
-	}
+    else if (event_type == "terminate")
+    {
+        //if(self_cid == 0) std::cout<<(getCurrentSimTimeNano()*0.000000001)<<"\n";
+        if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Handling terminate event. Component simulation terminating\n", self_gid);
+        
+        primaryComponentOKToEndSim();
+    }
 
 }
 
@@ -1429,10 +1275,10 @@ void beComponent::finish()
     }
 
     trace_op.close();
-   */         
+   */ 
+        
     Py_Finalize();
-    //if(!waitQ.empty()) {printf("%d waiting", self_gid); std::cout<<" "<<self_kind<<"\n";}
-    //if(!watchList.empty()) std::cout<<self_gid<<"--"<<self_kind<<" is pending on unsatisfied condition\n";
-    //printf("Inside finish for %d\n", self_gid);
+
+    //if((simulation_handler->sim_flags)->debug == self_gid) printf("GID: %d -- Component exiting!\n", self_gid);
    
 }

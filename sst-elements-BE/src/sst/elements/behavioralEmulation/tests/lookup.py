@@ -24,7 +24,10 @@ except: import pickle
 import csv
 import datetime
 import random
+import math
+import numpy as np
 from copy import deepcopy
+from random import *
 
 # Avoiding unwieldy import; but everything from common is in UPPERCASE.
 from common import *
@@ -66,7 +69,7 @@ class Librarian(object):
         elif self.scheme == RBF:
             return Rbf(samples, self.options[RBF][FUNCTION])
 
-        elif self.scheme == KRIGING:
+        #elif self.scheme == KRIGING:l=
             return Kriging(samples, self.options[KRIGING][POLYNOMIAL],
                            self.options[KRIGING][NEIGHBORS],
                            self.options[KRIGING][VARIOGRAM])
@@ -83,14 +86,13 @@ class Librarian(object):
 
         # Otherwise, if we have already opened this file:
         elif filename in self.interpolators:
-            #import pdb
-            #pdb.set_trace()
+
             # Perform the interpolation.
-            interp = random.choice(self.interpolators[filename])
-            #interp = self.interpolators[filename][0]
-            outputs = [interp.interpolate(inputs)[0]]
-            #outputs = [ interp.interpolate(inputs)[0] for interp in
-            #            [self.interpolators[filename][0]] ]
+            #interp = random.choice(self.interpolators[filename])
+            #outputs = [interp.interpolate(inputs)[0]]
+
+            outputs = [ interp.interpolate(inputs)[0] for interp in
+                        self.interpolators[filename] ]
 
             # Add the new entry to the cache.
             self.cache[ (filename, tuple(inputs)) ] = outputs
@@ -456,7 +458,6 @@ class Linear(object):
 def lookupValue(filename, inputs, i_scheme):
 
     degree = 1
-
     if str(i_scheme).find("polynomial") != -1:
         if str(i_scheme).find("-") != -1: degree = float(str(i_scheme)[(str(i_scheme).find("-"))+1:])
         else: degree = 1
@@ -464,9 +465,78 @@ def lookupValue(filename, inputs, i_scheme):
 
     librarian = Librarian(scheme=i_scheme)
 
+    if filename == "titan-transfer-inter-bw.csv": return [ (inputs[0]/(1024*1024*(librarian.lookup("Lookup/"+filename, inputs, degree))[0])) + ((librarian.lookup("Lookup/titan-transfer-inter-lat.csv", inputs, degree))[0]) ]
+
+    elif filename == "titan-transfer-intra-bw.csv": return [ (inputs[0]/(1024*1024*(librarian.lookup("Lookup/"+filename, inputs, degree))[0])) + ((librarian.lookup("Lookup/titan-transfer-intra-lat.csv", inputs, degree))[0]) ]
+
     outputs = librarian.lookup("Lookup/"+filename, inputs, degree)
 
     return outputs
+
+def lookupEquation(equation, input1):
+#def lookupEquation(equation, input1, i_scheme):
+    #print ("[lookupEquation] ---  ", equation)
+    #print ("inputs")
+    #print (input1)              
+    #print (i_scheme)
+    def add(a,b):
+        return (a+b)
+    def sub(a,b):
+        return (a-b)
+    def mul(a,b):
+        return (a*b)
+    def div(a,b):
+        return (a/b)
+    def square (a):
+        return (a*a)
+    def cube (a):
+        return (a*a*a)
+    def ln(a):
+        return (np.log(a))
+    def exp(a):
+        return (math.exp(a))
+    def logtwo(a):
+	print (a, math.log2(a))
+	return (math.log2(a))
+    
+    equation_new = "Equations/"+equation
+    fp = open(equation_new,'r')
+    equation_expression = str(fp.read())
+    #print ("equation")
+    #print (equation_expression)
+    alpha = 1
+    lx1 = 17
+    lelt = 32
+    #print ("alpha")
+    #print (alpha)
+    #print ("lx1")
+    #print (lx1)
+    #print ("lelt")
+    #print (lelt)
+    rank = round(np.random.uniform(0.01,1),2)
+
+    #es=int(i_scheme) #leave space before and after = 
+    es = 11
+    epp = 64
+
+    #print("es=" , es , "     epp=" , epp)
+
+
+    '''arguments = {'lelt':0,'lx1':0,'alpha':0,'d':0,'e':0,'f':0,'g':0,'h':0,'i':0,'j':0}
+    list_arguments = ['lelt','lx1','alpha','d','e','f','g','h','i','j']
+    size = len(arguments) - len(input1)
+    while(size > 0):
+        input1.append(0)
+        size = size - 1
+    for name_argument, value in enumerate(input1):
+        arguments[list_arguments[name_argument]] = value'''
+    
+    output_value = []
+    output_value.append(eval(eval(equation_expression)))
+    #print ("output value")
+    fp.close()
+    #print (eval(eval(equation_expression)))
+    return (output_value)
 
 
 if __name__ == "__main__":

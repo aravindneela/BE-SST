@@ -52,13 +52,14 @@ class simManager
 public:
     simManager(int gid, int cid, int ordinal, int par, std::string ops, std::string rels, std::string props, std::string mbxes, 
                std::string topo, std::string cd_list, std::string p_list, std::string m_list, std::string c_list, std::string s_flags, 
-               PyObject* myFunc, std::function<void(std::map<std::tuple<std::string, std::vector<float>>, std::vector<double>>)> updCache, 
+               PyObject* myFunc, PyObject* myFunc2, std::function<void(std::map<std::tuple<std::string, std::vector<float>>, std::vector<double>>)> updCache, 
                std::function<std::map<std::tuple<std::string, std::vector<float>>, std::vector<double>>()> gtCache)
     {
                 executor_id = 0;
                 self_gid = gid;
                 self_ordinal = ordinal;
                 myFunction = myFunc;
+                myFunctionEquation = myFunc2;
                 updateCache = updCache;
                 getCache = gtCache;
                 //currentSimTime = currentTime;
@@ -89,6 +90,7 @@ public:
     int self_gid, self_ordinal;
 
     PyObject* myFunction;
+    PyObject* myFunctionEquation;
 
     std::vector<std::string> mailboxList;
 
