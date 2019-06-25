@@ -64,18 +64,15 @@ Operation( "BGQ-core", "wait", NoLookup, None,
 Operation( "BGQ-core", "unwait", NoLookup, None,
            Recv(True))
 
-
-e1="computeConv.txt" 
-
-Operation( "BGQ-core", "computeConv", e1, "Equation",
+e1="computeConv.txt"
+Operation( "BGQ-core", "computeConv", "computeConv.txt", "Equation",
            Dawdle(e1))
 Operation( "BGQ-core", "computedr", "vulcan-compute-dr.csv", "polynomial-4",
            Dawdle( AnyOutput() ))
-
-Operation( "BGQ-core", "computeds", "vulcan-compute-ds.csv", "polynomial-4",
-           Dawdle( AnyOutput() ))
-Operation( "BGQ-core", "computedt", "vulcan-compute-dt.csv", "polynomial-4",
-           Dawdle( AnyOutput() ))
+Operation( "BGQ-core", "computeds", "computeds.txt", "Equation",
+           Dawdle(e1))
+Operation( "BGQ-core", "computedt", "computedt.txt", "Equation",
+           Dawdle(e1))
 Operation( "BGQ-core", "computeSum", "vulcan-compute-sum.csv", "polynomial-3",
            Dawdle( AnyOutput() ))
 Operation( "BGQ-core", "computerk", "vulcan-compute-rk.csv", "polynomial-3",
