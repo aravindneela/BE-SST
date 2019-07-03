@@ -2,19 +2,15 @@
 
 """
   Application-descriptor-language compiler, as part of scalable simulator.
-
     Copyright (C) 2015 {NSF CHREC, UF CCMT, Dylan Rudolph}
-
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
@@ -28,14 +24,18 @@ import time
 import argparse
 from collections import namedtuple
 
+#import pdb
+
 # Attempt to use the faster cPickle module.
 try: import cPickle as pickle
 except: import pickle
 
 # Avoiding unwieldy import; but everything from common is in UPPERCASE.
+#from source.common import *
 from common import *
 
 from shell import Shell
+#from source.shell import Shell
 
 # Suppress the trace when an error is raised (better-looking syntax errors).
 # sys.tracebacklimit = 0
@@ -57,7 +57,6 @@ class Token(object):
         """Create a string representation of the Token for printing."""
         return "Index: ({:>3},{:>3}) :: Type: {:>14} :: >{}<".format(
             self.line, self.column, self.kind, self.text)
-
 
 class Node(object):
 
@@ -86,6 +85,9 @@ class Node(object):
 
         self.parent = None
         self.children = []
+
+#        print self.kind, self.token, self.payload, self.parent, self.children
+
 
     def __str__(self, indent=0):
         """Create a long-form recursive string representation of the Node."""
@@ -175,7 +177,6 @@ class Parser(object):
         self.tokens = []
         self.tokenIndex = 0
 
-
     # -------------------------- Utility Definitions ------------------------ #
 
     @property
@@ -230,6 +231,7 @@ class Parser(object):
             while column < len(lineString):
 
                 # Gobble the next string if a match is found.
+                	#Search_Patterns is a dict
                 for kind, pattern in SEARCH_PATTERNS.items():
                     match = re.match(pattern, lineString[column:])
                     if match:
@@ -265,7 +267,6 @@ class Parser(object):
 
     def _program_(self, rootNode):
         """ EBNF :: statement {statement} endoffile ;
-
                  ::           root-node
             AST  ::          /    |    \
                  ::  statement   ...   ...
@@ -281,6 +282,11 @@ class Parser(object):
         """ EBNF :: do | for | if ; """
 
         branches = { NAME: self._do_,
+                     SWITCH: self._switch_,
+                     LOOP: self._loop_,
+                     ACCESS: self._access_,
+                     ASSIGN: self._assign_,
+                     INC: self._inc_,
                      FOR: self._for_,
                      IF: self._if_ }
 
@@ -291,7 +297,6 @@ class Parser(object):
 
     def _do_(self, node):
         """ EBNF :: name "(" argument {"," argument} ")" ;
-
                  ::        do-node
             AST  ::      /    |    \
                  ::  name argument argument ...
@@ -311,8 +316,7 @@ class Parser(object):
         self.gobble(REGION_RIGHT)
 
     def _for_(self, node):
-        """ EBNF :: "for" "(" name "," iterable ")" "{" {statement} "}" ;
-
+        """ EBNF :: for "(" name "," iterable ")" "{" {statement} "}" ;
                  ::       for-node
             AST  ::      /   |    \
                  ::  name iterable statement ...
@@ -325,6 +329,7 @@ class Parser(object):
         self.gobble(REGION_LEFT)
         self._name_(forNode)
         self.gobble(SEPARATOR)
+
         self._iterable_(forNode)
         self.gobble(REGION_RIGHT)
 
@@ -334,9 +339,124 @@ class Parser(object):
             self._statement_(forNode)
         self.gobble(SCOPE_RIGHT)
 
+    def _loop_(self, node):
+        """ EBNF :: loop "(" iterator "," limit ")" "{" {statement} "}" ;
+                 ::          loop-node
+            AST  ::         /    |    \
+                 :: iterator   limit   statement
+        """
+
+        loopNode = Node(self.gobble(LOOP))
+        node.append(loopNode)
+
+        # Accept the name and iterable portions of the statement.
+        self.gobble(REGION_LEFT)
+        self._name_(loopNode)
+        self.gobble(SEPARATOR)
+        self._argument_(loopNode)
+        self.gobble(REGION_RIGHT)
+
+        # Accept all substatements.
+        self.gobble(SCOPE_LEFT)
+        while self.current.kind != SCOPE_RIGHT:
+            self._statement_(loopNode)
+        self.gobble(SCOPE_RIGHT)
+
+    def _access_(self, node):
+        """ EBNF :: access "(" return "," array "," index ")"
+                 ::          access-node
+            AST  ::         /    |    \
+                 ::   return   array   index
+        """
+
+        accessNode = Node(self.gobble(ACCESS))
+        node.append(accessNode)
+
+        # Accept the name and iterable portions of the statement.
+        self.gobble(REGION_LEFT)
+        self._name_(accessNode)
+        self.gobble(SEPARATOR)
+        self._name_(accessNode)
+        self.gobble(SEPARATOR)
+        self._argument_(accessNode)
+#        self._name_(accessNode)
+        self.gobble(REGION_RIGHT)
+
+    def _assign_(self, node):
+        """ EBNF :: assign "(" name "," number ")"
+                 ::          assign-node
+            AST  ::         /           \
+                 ::     name             number
+        """
+        assignNode = Node(self.gobble(ASSIGN))
+        node.append(assignNode)
+        self.gobble(REGION_LEFT)
+        self._name_(assignNode)
+        self.gobble(SEPARATOR)
+        self._argument_(assignNode)
+        self.gobble(REGION_RIGHT)
+
+    def _inc_(self, node):
+        """ EBNF :: inc "(" name  ")"
+                 ::   inc-node
+            AST  ::      |
+                 ::    name
+        """
+        incNode = Node(self.gobble(INC))
+        node.append(incNode)
+        self.gobble(REGION_LEFT)
+        self._name_(incNode)
+        self.gobble(REGION_RIGHT)
+
+    def _switch_(self, node):
+        """ EBNF :: switch "(" name ")" "{" {statement0} "," ... "," {statementN-1} "}" ;
+                 ::         switch-node
+            AST  ::      /       |        \
+                 ::  name  statement0 ... statementN-1
+        """
+#        switchNode = Node(self.gobble(SWITCH))
+#        node.append(switchNode)
+
+#        self.gobble(REGION_LEFT)
+#        self._name_(switchNode)
+#        self.gobble(REGION_RIGHT)
+
+#        self.gobble(SCOPE_LEFT)
+#        while self.current.kind != SCOPE_RIGHT:
+#            self.gobble(SCOPE_LEFT)
+#            while self.current.kind != SCOPE_RIGHT:
+#                self._statement_(switchNode)
+#            self.gobble(SCOPE_RIGHT)
+#            if self.current.kind == SEPARATOR:
+#                self.gobble(SEPARATOR)
+#        self.gobble(SCOPE_RIGHT)
+
+        self.gobble(SWITCH)
+        self.gobble(REGION_LEFT)
+        switchName = self.gobble(NAME)
+        self.gobble(REGION_RIGHT)
+
+        switchIndex = 0
+        self.gobble(SCOPE_LEFT)
+        while self.current.kind != SCOPE_RIGHT:
+            switchNode = Node(Token(switchName.line,switchName.column,"if","IF"))
+            testNode = Node(Token(switchName.line,switchName.column,"equals","=="))
+            testNode.append(Node(switchName))
+            testNode.append(Node(Token(switchName.line,switchName.column,NUMBER,str(switchIndex))))
+            switchNode.append(testNode)
+            node.append(switchNode)
+            switchIndex = switchIndex + 1
+            self.gobble(SCOPE_LEFT)
+            while self.current.kind != SCOPE_RIGHT:
+                self._statement_(switchNode)
+            self.gobble(SCOPE_RIGHT)
+            if self.current.kind == SEPARATOR:
+                self.gobble(SEPARATOR)
+        self.gobble(SCOPE_RIGHT)
+
+
     def _if_(self, node):
         """ EBNF :: "if" "(" conditional ")" "{" {statement} "}" ;
-
                  ::            if-node
             AST  ::           /       \
                  ::  conditional     statement ...
@@ -372,7 +492,6 @@ class Parser(object):
 
     def _conditional_(self, node):
         """ EBNF :: expression comparison expression ;
-
                  ::        comparison-node
             AST  ::         /          \
                  ::  expression       expression
@@ -401,27 +520,38 @@ class Parser(object):
 
     def _iterable_(self, node):
         """ EBNF :: iterable = "[" expression {"," expression} "]" ;
-
                  ::           iterable-node
             AST  ::          /      |      \
                  ::  expression expression expression ...
         """
-
         iterableNode = Node( self.gobble(LIST_LEFT) )
         iterableNode.kind = ITERABLE
 
+	#Add iterable node to tree
         node.append(iterableNode)
 
         while self.current.kind != LIST_RIGHT:
-            self._expression_(iterableNode)
+            if self.current.kind == NUMBER:
+                startIndex = int(self.current.text)+1
+#                print "start", startIndex
+                self._expression_(iterableNode)
             if self.current.kind == SEPARATOR:
                 self.gobble(SEPARATOR)
+            if self.current.kind == COLON:
+                self.gobble(COLON)
+                stopIndex = int(self.current.text)+1
+#                print "stop", stopIndex
+                self.gobble(NUMBER)
+                for i in range(startIndex, stopIndex):
+                    loopToken = Token(0,0, NUMBER, str(i))
+	            loopTokenIndex = self.tokenIndex
+                    self.tokens.insert( loopTokenIndex, loopToken )
+                    self._expression_(iterableNode)
 
         self.gobble(LIST_RIGHT)
 
     def _expression_(self, node):
         """ Precedence-climbing expression parser.
-
           Translation of function on wikipedia, found January 2015 at:
             http://en.wikipedia.org/wiki/Operator-precedence_parser
         """
@@ -496,6 +626,18 @@ class Generator(object):
         self.ast = ast
         self.ir = []
 
+
+
+#        for x in ast.children:
+#            print x.kind
+#            if x.token:
+#                print x.token.line, x.token.column, x.token.kind, x.token.text
+#            print x.payload
+#            print x.children
+#            if x.children[0]:
+#                print x.children[0].kind, x.children[0].token, x.children[0].payload, x.children[0].children
+#            print ""
+
     # ---------------------------- Main Functions --------------------------- #
 
     def simplify(self):
@@ -533,10 +675,15 @@ class Generator(object):
     # -------------------------- Grammar Definitions ------------------------ #
 
     def _statement_(self, node):
-        """A statement can be any of "for", "if", or "do"."""
+        """A statement can be any of "switch", "loop", "for", "if", or "do"."""
 
         # Select among the possible branches.
-        { IF: self._if_,
+        { SWITCH: self._switch_,
+          LOOP: self._loop_,
+          ACCESS: self._access_,
+          ASSIGN: self._assign_,
+          INC: self._inc_,
+          IF: self._if_,
           FOR: self._for_,
           DO: self._do_ }[node.kind]( node )
 
@@ -557,6 +704,26 @@ class Generator(object):
         # Add the concluding Directive.
         self.ir.append( Directive(END) )
 
+    def _switch_(self, node):
+        """A switch statement contains a select variable and statements."""
+        pass
+
+    def _loop_(self, node):
+        """A loop statement contains a limit. child statements are performed limit times."""
+
+        # Add the starting Directive.
+        self.ir.append( Directive(LOOP, payload={
+            ITERATOR: node.children[0].payload,
+            LIMIT:    node.children[1].payload } )
+        )
+
+        # Accept all sub-statements.
+        for child in node.children[2:]:
+            self._statement_(child)
+
+        # Add the concluding Directive.
+        self.ir.append( Directive(END) )
+
     def _for_(self, node):
         """A for statement contains an iteration variable and iterable."""
 
@@ -572,6 +739,34 @@ class Generator(object):
 
         # Add the concluding Directive.
         self.ir.append( Directive(END) )
+
+    def _access_(self, node):
+        """access obtained array."""
+
+        # Add the do Directive to the IR directly.
+        self.ir.append(
+            Directive(ACCESS, payload={
+                VALUE: node.children[0].payload,
+                TERM_A: node.children[1].payload,
+                TERM_B: node.children[2].payload
+            }))
+
+    def _assign_(self, node):
+        """access obtained array."""
+
+        # Add the do Directive to the IR directly.
+        self.ir.append(
+            Directive(ASSIGN, payload={
+                NAME: node.children[0].payload,
+                VALUE: node.children[1].payload
+            }))
+
+    def _inc_(self, node):
+        """access obtained array."""
+
+        # Add the do Directive to the IR directly.
+        self.ir.append(
+            Directive(INC, payload={ NAME: node.children[0].payload }))
 
     def _do_(self, node):
         """A do statement contains a function and its arguments."""
@@ -638,7 +833,6 @@ class Translator(object):
 
     def allocate(self):
         """Perform register allocation for the named variables.
-
         The graph of mutually-alive variables is 'colored' by the greedy
         heuristic (also known as the Welsh-Powell algorithm). Lower-numbered
         registers are given (with small priority) to long-lived variables.
@@ -662,7 +856,7 @@ class Translator(object):
             else:                                   bot = 0
 
             # Obtains end with a string argument, and no other instructions do.
-            top = 1 if (instr.kind == OBTAIN or instr.kind == FOBTAIN) else len(instr.operands)
+            top = 1 if instr.kind == OBTAIN else len(instr.operands)
 
             # Find the lines in which a given variable is referenced.
             for var in filter(lambda x: type(x)==str, instr.operands[bot:top]):
@@ -674,8 +868,11 @@ class Translator(object):
             # Something of a hack: registers in 'obtain' instructions are
             # completely dedicated after the obtain. This prevents issues
             # with registers being overwritten after backwards jumps.
-            if instr.kind == OBTAIN or instr.kind == FOBTAIN:
+            if instr.kind == OBTAIN:
                 references[instr.operands[0]].append(len(self.code))
+
+#            if instr.kind == ACCESS:
+#                references[instr.operands[0]].append(len(self.code))
 
         # Build a set of tuples which contain the (first, last) reference.
         # Note: because of the design of the language, issues with looping
@@ -725,7 +922,6 @@ class Translator(object):
 
     def rename(self, thing, assign=False, variables={}):
         """Map a variable name to a generic name if possible.
-
         Note: Utilizes the mutability of default keyword arguments to store
         the list of already-assigned variables.
         """
@@ -739,8 +935,8 @@ class Translator(object):
         # Otherwise, potentially replace the string as necessary.
         else:
 
-            if thing[0] == '"' and thing[-1] == '"':                
-                return str(thing).replace(" ", "/t")
+            if thing[0] == '"' and thing[-1] == '"':
+                return str(thing)
 
             # If we've already made a name:
             if thing in variables:
@@ -765,7 +961,6 @@ class Translator(object):
     def _do_(self, details):
         """ Input Details         :: { routine: A,
                                   ::   terms: [B, C, ...] }
-
             Output Instruction(s) :: Dependent on Routine.
         """
 
@@ -774,22 +969,19 @@ class Translator(object):
         if routine in USER_ACCESSABLE_INSTRUCTIONS:
 
             # If the function is an obtain, make an intermediate name.
-            if routine in [OBTAIN, FOBTAIN]:
+            if routine in [OBTAIN]:
                 terms = [self.rename(terms[0], assign=True)] + terms
 
             # For prints: rename all of arguments after the first.
-            elif routine in [PRINT]: 
-                terms = self.rename(terms)
-                #terms = [" "] + terms
-                #terms = terms[:1] + self.rename(terms[1:])
+            elif routine in [PRINT]:
+                terms = [" "] + terms
+                terms = terms[:1] + self.rename(terms[1:])
 
             # For comms: rename all of arguments after the first.
             elif routine in [COMM]: terms = terms[:1] + self.rename(terms[1:])
 
             # For calls: rename all of arguments after the second.
             elif routine in [CALL]: terms = terms[:2] + self.rename(terms[2:])
-
-            elif routine in [BARRIER]: terms = self.rename(terms)
 
             return [ Instruction( routine, terms ) ]
 
@@ -801,7 +993,6 @@ class Translator(object):
                                   ::   term b: B,
                                   ::   operator: C,
                                   ::   value: D }
-
             Output Instruction(s) :: C D A B;
         """
         operation = { PLUS: ADD, MINUS: SUB, TIMES: MUL, DIVIDES: DIV,
@@ -811,10 +1002,58 @@ class Translator(object):
                                                       details[TERM_A],
                                                       details[TERM_B] ])) ]
 
+    def _access_(self, details):
+        """ Input Details         :: { value: V,
+                                  ::   term a: A,
+                                  ::   term b: B }
+            Output Instruction(s) ::  access V A B;
+        """
+        value = self.rename(details[VALUE], assign=True)
+        array = self.rename(details[TERM_A])
+        index = self.rename(details[TERM_B], assign=True)
+        return [ Instruction(ACCESS, [value, array, index]) ]
+
+    def _assign_(self, details):
+        """ Input Details         :: { name: N,
+                                  ::   value: V }
+            Output Instruction(s) ::   assign N V;
+        """
+        name = self.rename(details[NAME], assign=True)
+        value = self.rename(details[VALUE], assign=True)
+        return [ Instruction(ASSIGN, [name, value]) ]
+
+    def _inc_(self, details):
+        """ Input Details         :: { name: N }
+            Output Instruction(s) ::  inc N;
+        """
+        return [ Instruction(INC, [self.rename(details[NAME])]) ]
+
+    def _loop_(self, details):
+        """ Input Details         :: { iterator: A,
+                                  ::   limit : B }
+
+            Output Instruction(s) :: assign A 0;
+                                  :: target; <----------------------------+
+                                  :: ...                                  |
+                                  :: inc A;                               |
+                                  :: jumplt A B <target>; >---------------+
+            Note: the target and jump instructions are mutually referenced.
+        """
+        iterator = self.rename(details[ITERATOR], assign=True)
+        limit = self.rename(details[LIMIT], assign=True)
+
+        # Set up the mutually-referencing instructions.
+        target = Instruction(TARGET, [])
+        jumplt = Instruction(JUMPLT, [iterator, limit, target])
+        target.operands.append(jumplt)
+
+        self.pending.append([ Instruction(INC, [iterator]), jumplt ])
+
+        return [ Instruction(ASSIGN, [iterator, 0]), target ]
+
     def _for_(self, details):
         """ Input Details         :: { iterator: A,
                                   ::   iterable: B }
-
             Output Instruction(s) :: assign <UID1> 0;
                                   :: target; <----------------------------+
                                   :: assign <UID0> B;                     |
@@ -822,7 +1061,6 @@ class Translator(object):
                                   :: ...                                  |
                                   :: inc    <UID1>;                       |
                                   :: jumplt <UID1> <len(B)> <target>; >---+
-
             Note: the target and jump instructions are mutually referenced.
         """
         iterable = details[ITERABLE]
@@ -845,13 +1083,12 @@ class Translator(object):
         """ Input Details         :: { term a: A,
                                   ::   term b: B,
                                   ::   operator: C }
-
             Output Instruction(s) :: <jump!C> A B <target>; >------+
                                   :: ...                           |
                                   :: target; <---------------------+
-
             Note: the target and jump instructions are mutually referenced.
         """
+
         operation = { NOT_EQUALS: JUMPEQ,  EQUALS: JUMPNQ,
                       NOT_GREATER: JUMPGT, GREATER: JUMPNG,
                       NOT_LESS: JUMPLT,    LESS: JUMPNL } [ details[OPERATOR] ]
@@ -1012,10 +1249,10 @@ if __name__ == "__main__":
     machinecode = C.compile(code)
 
     # Write out the 'binary' file.
-#    with open(args.out, 'w') as binaryMC:
-#        pickle.dump(machinecode, binaryMC)
+    with open(args.out, 'w') as binaryMC:
+        pickle.dump(machinecode, binaryMC)
 
-#    outputFiles.append(args.out)
+    outputFiles.append(args.out)
 
     S.say("Compilation successful: output written to '{}'".format(args.out))
 
@@ -1025,9 +1262,9 @@ if __name__ == "__main__":
     # If requested, also write out a human-readble machine code file.
     if args.readable:
 
-        readableMCfile = args.out #os.path.splitext(args.out)[0] + FILE_EXTENSION_MC
+        readableMCfile = os.path.splitext(args.out)[0] + FILE_EXTENSION_MC
         with open(readableMCfile, 'wb') as readableMC:
-            readableMC.write("\n".join([(repr(item).replace(", ", ",")) for item in machinecode]))
+            readableMC.write("\n".join([repr(item) for item in machinecode]))
 
         outputFiles.append(readableMCfile)
 
