@@ -29,20 +29,21 @@ from random import sample
 # ---------------------- 'Enum'-Like String Definitions --------------------- #
 
 INSTRUCTIONS = """
-  CALL COMM PROG SIMUL INDEP BEGIN ASSIGN ACCESS OBTAIN FOBTAIN JUMPLT JUMPGT
-  JUMPNL JUMPNG JUMPEQ JUMPNQ ADD SUB MUL DIV MOD INC DEC TARGET PRINT BARRIER"""
+  CALL COMM PROG SIMUL INDEP BEGIN ASSIGN ACCESS OBTAIN JUMPLT JUMPGT
+  JUMPNL JUMPNG JUMPEQ JUMPNQ ADD SUB MUL DIV MOD INC DEC TARGET PRINT """
 
 TOKENS = """
   NUMBER COMMENT IGNORE FOR IF STRING NAME REGION_LEFT REGION_RIGHT
   SCOPE_LEFT SCOPE_RIGHT LIST_LEFT LIST_RIGHT SEPARATOR PLUS MINUS TIMES
-  DIVIDES MODULO POWER NOT_EQUALS NOT_GREATER NOT_LESS EQUALS GREATER LESS """
+  DIVIDES MODULO POWER NOT_EQUALS NOT_GREATER NOT_LESS EQUALS GREATER LESS
+  COLON SWITCH LOOP ACCESS ASSIGN INC"""
 
 COMPILER_ASSORTED = """
   MATH OPERATOR OPERANDS TERMS TERM_A TERM_B INSTRUCTION REFERENCE UPDATE
-  DO END_OF_FILE ROOT ITERABLE ITERATOR ROUTINE VALUE END """
+  DO END_OF_FILE ROOT ITERABLE ITERATOR ROUTINE VALUE END LIMIT NAME"""
 
 SIMULATOR_ASSORTED = """
-  SEND MESH TORUS TREE CUBE NEAREST LINEAR KRIGING RBF POLYNOMIAL
+  SEND MESH TORUS TREE CUBE NEAREST LINEAR LAGRANGE POLYNOMIAL KRIGING RBF POLYNOMIAL
   NEIGHBORS VARIOGRAM FUNCTION SELF AUNT PARENT SIBLING CHILD COUSIN"""
 
 KEYWORDS = ' '.join( [ INSTRUCTIONS, TOKENS, COMPILER_ASSORTED,
@@ -69,8 +70,13 @@ SEARCH_PATTERNS = OrderedDict([                                               #
     (NUMBER, r'(\d+\.\d*|(\(-\d+\)|\(\+\d+\)|\d+))'),                         #
     (COMMENT, r'#+.*'),                                                       #
     (IGNORE, r'[ \t]+'),                                                      #
+    (SWITCH, r'SWITCH'),                                                            #
     (FOR, r'FOR'),                                                            #
     (IF, r'IF'),                                                              #
+    (INC, r'INC'),                                                              #
+    (LOOP, r'LOOP'),                                                              #
+    (ACCESS, r'ACCESS'),                                                              #
+    (ASSIGN, r'ASSIGN'),                                                              #
     (STRING, r'"[-a-zA-Z0-9_.,:;|(){}<>~`!@#$%^&*\\/ ]+"'),                   #
     (NAME, r'[a-zA-Z]*[a-zA-Z0-9_\.]*[a-zA-Z0-9]'),                           #
     (REGION_LEFT, r'\('),                                                     #
@@ -80,6 +86,7 @@ SEARCH_PATTERNS = OrderedDict([                                               #
     (LIST_LEFT, r'\['),                                                       #
     (LIST_RIGHT, r'\]'),                                                      #
     (SEPARATOR, r','),                                                        #
+    (COLON, r':'),                                                        #
     (PLUS, r'\+'),                                                            #
     (MINUS, r'-'),                                                            #
     (TIMES, r'\*'),                                                           #
@@ -106,7 +113,8 @@ IRRELEVANT_TOKENS = [ COMMENT, IGNORE ]
 
 JUMP_INSTRUCTIONS = [ JUMPLT, JUMPNL, JUMPGT, JUMPNG, JUMPEQ, JUMPNQ ]
 USER_ACCESSABLE_INSTRUCTIONS = [ CALL, COMM, PROG, INDEP,
-                                 SIMUL, BEGIN, PRINT, OBTAIN, FOBTAIN, BARRIER ]
+                                 SIMUL, BEGIN, PRINT, OBTAIN ]
+#                                 ASSIGN, ACCESS ]
 
 COMPARISON_OPERATORS = [ EQUALS, GREATER, LESS,
                          NOT_EQUALS, NOT_GREATER, NOT_LESS ]
@@ -124,7 +132,7 @@ STRING_OPERATORS = { "==": operator.eq, "!=": operator.ne,
                      "<=": operator.le, ">=": operator.ge,
                      "<": operator.lt, ">": operator.gt }
 
-UNCACHEABLE_INSTRUCTIONS = [ CALL, COMM, PROG, OBTAIN, FOBTAIN, INDEP, SIMUL, BEGIN, BARRIER ]
+UNCACHEABLE_INSTRUCTIONS = [ CALL, COMM, PROG, OBTAIN, INDEP, SIMUL, BEGIN ]
 
 # ------------------------ Name Generator Definitions ----------------------- #
 
@@ -140,6 +148,8 @@ def SUID():
     new = gen()
     while new in SUIDS: new = gen()
     SUIDS.add(new)
+
+#    print SUIDS
 
     return SUID_PREFIX + new + SUID_SUFFIX
 
@@ -254,7 +264,7 @@ LOG_ROUTINE_STATE_META = IDT + "{}"
 
 # ----------------------------- Default Options ----------------------------- #
 
-DEFAULT_INTERPOLATION_SCHEME = LINEAR
+DEFAULT_INTERPOLATION_SCHEME = POLYNOMIAL
 
 DEFAULT_INTERPOLATION_OPTIONS = { KRIGING: { POLYNOMIAL: 0,
                                              NEIGHBORS : 6,
